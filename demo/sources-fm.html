@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FmSynth demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>FmSynth</h1>
+    <p class="demo-note">
+      2-operator FM: a modulator oscillator drives a gain node (the
+      modulation index, in Hz) straight into the carrier's frequency
+      AudioParam — native FM, no worklet. Try harmonicity values like 1.4
+      or 2.41 for bell-like, inharmonic tones.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="select-carrier"></div>
+    <div id="select-modulator"></div>
+    <div id="params"></div>
+    <script type="module" src="/sources-fm.ts"></script>
+  </body>
+</html>

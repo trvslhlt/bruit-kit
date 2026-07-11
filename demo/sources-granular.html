@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GranularSynth demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>GranularSynth</h1>
+    <p class="demo-note">
+      An AudioWorkletProcessor-based granular engine. Loaded with a
+      synthesized test tone by default — pick a real file if you have one
+      handy. "Direct Play" streams grains at the sample's natural pitch
+      independent of the keyboard.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <p>
+      <button id="direct-play-button">Hold for Direct Play</button>
+    </p>
+    <p id="status" class="demo-note"></p>
+    <div id="keyboard"></div>
+    <div id="select"></div>
+    <div id="params"></div>
+    <script type="module" src="/sources-granular.ts"></script>
+  </body>
+</html>

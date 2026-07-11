@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SamplePlayer demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>SamplePlayer</h1>
+    <p class="demo-note">
+      Each key pitches the loaded buffer relative to a root note. Loaded
+      with a synthesized test tone by default — pick a real file if you
+      have one handy.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <p>
+      <label><input type="checkbox" id="loop-toggle" checked /> Loop</label>
+      <label
+        ><input type="checkbox" id="oneshot-toggle" /> One-shot (ignore
+        noteOff)</label
+      >
+    </p>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/sources-sampleplayer.ts"></script>
+  </body>
+</html>
