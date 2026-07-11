@@ -12,3 +12,5 @@ services:
     # exclusive to this container.
     volumes:
       - .:/app
+    ports:
+      - "5173:5173"

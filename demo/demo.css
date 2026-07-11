@@ -1,0 +1,101 @@
+@import "../src/ui/columns.css";
+@import "../src/ui/sliderControl.css";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #14161a;
+  color: #e4e6eb;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+h1,
+h2 {
+  font-weight: 600;
+}
+
+a {
+  color: #4c7dff;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.demo-note {
+  color: #9aa0ab;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.unlock-button {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: 1px solid #4c7dff;
+  background: #1b1d22;
+  color: #e4e6eb;
+  cursor: pointer;
+}
+
+.demo-nav-group {
+  margin-bottom: 1.5rem;
+}
+
+.demo-nav-group h2 {
+  font-size: 1rem;
+  color: #9aa0ab;
+  margin-bottom: 0.5rem;
+}
+
+.demo-nav-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.demo-nav-group li {
+  margin-bottom: 0.25rem;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 2px;
+  margin: 1rem 0;
+  user-select: none;
+}
+
+.keyboard-key {
+  flex: 1;
+  height: 100px;
+  background: #e4e6eb;
+  color: #14161a;
+  border-radius: 0 0 4px 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.keyboard-key:active {
+  background: #4c7dff;
+  color: #fff;
+}
+
+.keyboard-key-sharp {
+  background: #14161a;
+  color: #9aa0ab;
+  height: 60px;
+  margin: 0 -0.6rem;
+  z-index: 1;
+  border: 1px solid #3a3e47;
+}

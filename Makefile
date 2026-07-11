@@ -1,4 +1,4 @@
-.PHONY: up down shell lint format typecheck build
+.PHONY: up down shell lint format typecheck build demo
 
 # Start the builder container (stays alive, no dev server — see Dockerfile).
 up:
@@ -21,3 +21,9 @@ typecheck:
 
 build:
 	docker compose exec builder npm run build
+
+# --host so the dev server is reachable from the host browser at
+# localhost:5173 (see docker-compose.yml's port mapping) rather than only
+# from inside the container.
+demo:
+	docker compose exec builder npm run demo -- --host 0.0.0.0

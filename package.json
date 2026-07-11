@@ -32,7 +32,10 @@
     "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/ && mkdir -p dist/sources && cp src/sources/granular-processor.js dist/sources/",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "demo": "vite --config demo/vite.config.ts",
+    "demo:build": "vite build --config demo/vite.config.ts",
+    "typecheck:demo": "tsc --noEmit -p demo/tsconfig.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
