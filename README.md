@@ -7,19 +7,28 @@ sibling projects via a `file:` dependency.
 
 ## Parts
 
-- **`web-audio-toy-kit/audio`** — dry/wet crossfade helper, four effects
-  (filter, delay, distortion, reverb — each with a synthesized/native
-  implementation, many params, and a dry/wet control), a `MediaRecorder`
-  capture-to-download `Recorder`, and a small LFO modulation engine (fixed
-  slots, each assignable to either a worklet-internal param or a native
-  `AudioParam`, given the app's own target registry — see
+- **`web-audio-toy-kit/audio`** — dry/wet crossfade helper (`createDryWet`);
+  seven effects, each with many params and (except `LimiterEffect`, which
+  is always fully engaged as an end-of-chain safety net) a dry/wet control:
+  filter, delay, distortion, reverb (synthesized decaying-noise impulse,
+  not a loaded IR), compressor, ring modulation, tremolo, and limiter; a
+  `MediaRecorder` capture-to-download `Recorder`; a small LFO modulation
+  engine (fixed slots, each assignable to either a worklet-internal param
+  or a native `AudioParam`, given the app's own target registry — see
   `granular_midi/frontend/src/modulation/lfoTargets.ts` for an example of
-  building one).
+  building one); and `scheduleAutomation`/`startAutomationLoop`, which
+  schedule an `AutomationPoint[]` breakpoint curve (see `ui` below) onto
+  any real `AudioParam` over a given duration, once or looping.
 - **`web-audio-toy-kit/ui`** — a waveform-preview-with-playhead-scrubber
-  widget (`createWaveformView`) and labeled-range-slider helpers
-  (`rangeControl`/`bindSlider`), both vanilla DOM, no framework. Pairs with
-  `web-audio-toy-kit/ui/waveformView.css`, `/sliderControl.css`, and
-  `/columns.css` (a small 3-column responsive control-panel grid).
+  widget (`createWaveformView`), a two-handle waveform range-selector
+  (`createWaveformRangeView`, for picking a `{start, end}` sub-range), a
+  multi-point breakpoint-curve editor (`createAutomationEditor` — drag
+  points to reshape, double-click to add/remove, pairs with
+  `audio`'s `scheduleAutomation` but has no dependency on it), and
+  labeled-range-slider helpers (`rangeControl`/`bindSlider`), all vanilla
+  DOM, no framework. Pairs with `web-audio-toy-kit/ui/waveformView.css`,
+  `/waveformRangeView.css`, `/automationEditor.css`, `/sliderControl.css`,
+  and `/columns.css` (a small 3-column responsive control-panel grid).
 - **`web-audio-toy-kit/midi`** — a generic MIDI-performance toolkit: the
   `NoteTarget`/`ClockedNoteTarget` abstraction everything else is built on,
   `@tonejs/midi` file loading, a stateful `MidiPlaybackController` (live
