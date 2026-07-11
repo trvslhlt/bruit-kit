@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Automation demo</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../src/ui/automationEditor.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>Automation</h1>
+    <p class="demo-note">
+      createAutomationEditor (drag points to reshape, double-click to
+      add/remove) paired with scheduleAutomation/startAutomationLoop,
+      driving a FilterEffect's frequency over a sustained note. Edits while
+      looping take effect next cycle — startAutomationLoop re-reads the
+      curve fresh each time.
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <label><input type="checkbox" id="note-toggle" /> Sustain a note</label>
+    </p>
+    <div id="editor"></div>
+    <div id="params"></div>
+    <p>
+      <button id="loop-button">Start loop</button>
+      <button id="stop-button">Stop loop</button>
+    </p>
+    <script type="module" src="/automation-editor.ts"></script>
+  </body>
+</html>

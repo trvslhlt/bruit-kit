@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createWaveformView demo</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../src/ui/waveformView.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createWaveformView</h1>
+    <p class="demo-note">
+      Click anywhere on the waveform to seek and play from that point. The
+      playhead line animates during playback; the dashed band around it
+      previews a "position jitter" range (purely cosmetic — see
+      GranularSynth's positionJitterMs for where that idea comes from).
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <div id="waveform"></div>
+    <p id="seek-fraction" class="demo-note"></p>
+    <div id="params"></div>
+    <script type="module" src="/ui-waveformview.ts"></script>
+  </body>
+</html>

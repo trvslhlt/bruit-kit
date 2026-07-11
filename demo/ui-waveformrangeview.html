@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createWaveformRangeView demo</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../src/ui/waveformRangeView.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createWaveformRangeView</h1>
+    <p class="demo-note">
+      Drag the two handles to pick a {start, end} sub-range (e.g. for a
+      sample playback trim range) — neither handle can cross the other.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <div id="waveform"></div>
+    <p id="range-text" class="demo-note"></p>
+    <p>
+      <button id="play-button">Loop-play selected range</button>
+      <button id="stop-button">Stop</button>
+    </p>
+    <script type="module" src="/ui-waveformrangeview.ts"></script>
+  </body>
+</html>

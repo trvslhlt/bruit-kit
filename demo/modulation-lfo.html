@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LFO engine demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>LFO engine</h1>
+    <p class="demo-note">
+      createLfoEngine driving a native AudioParam target (this app owns the
+      ModulationTarget[] list — the engine has no built-in knowledge of any
+      specific param). Only native-AudioParam targets are exercised here,
+      not the worklet-internal path, so the synth argument is a no-op stub.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <p>
+      <label><input type="checkbox" id="enabled-toggle" /> LFO enabled</label>
+    </p>
+    <div id="target-select"></div>
+    <div id="shape-select"></div>
+    <div id="params"></div>
+    <script type="module" src="/modulation-lfo.ts"></script>
+  </body>
+</html>

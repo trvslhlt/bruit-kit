@@ -26,7 +26,22 @@ export function unlockAudioContext(
 
 const sharedLimiters = new WeakMap<AudioContext, LimiterEffect>();
 
-/** Routes `node` through a single shared LimiterEffect before destination —
+/** Lazily creates (or reuses) the one LimiterEffect a page's AudioContext
+ * routes through before destination. Exposed on its own — not just via
+ * connectToOutput below — so a demo that needs to tap "whatever's actually
+ * heard" (e.g. recorder.ts's Recorder) can connect to limiter.output
+ * directly instead of the pre-limiter signal. */
+export function getSharedLimiter(audioContext: AudioContext): LimiterEffect {
+  let limiter = sharedLimiters.get(audioContext);
+  if (!limiter) {
+    limiter = new LimiterEffect(audioContext);
+    limiter.output.connect(audioContext.destination);
+    sharedLimiters.set(audioContext, limiter);
+  }
+  return limiter;
+}
+
+/** Routes `node` through the shared LimiterEffect before destination —
  * every demo's output goes through this, so nothing in this app can
  * hard-clip regardless of what a demo's own controls are set to (see
  * audio/limiterEffect.ts). */
@@ -34,11 +49,5 @@ export function connectToOutput(
   node: AudioNode,
   audioContext: AudioContext,
 ): void {
-  let limiter = sharedLimiters.get(audioContext);
-  if (!limiter) {
-    limiter = new LimiterEffect(audioContext);
-    limiter.output.connect(audioContext.destination);
-    sharedLimiters.set(audioContext, limiter);
-  }
-  node.connect(limiter.input);
+  node.connect(getSharedLimiter(audioContext).input);
 }

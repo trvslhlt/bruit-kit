@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recorder demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>Recorder</h1>
+    <p class="demo-note">
+      Taps the post-limiter signal via a MediaStreamAudioDestinationNode —
+      a real-time capture of whatever's actually heard, including live
+      control changes made mid-recording. Play some notes, record a few
+      seconds, stop, then play the result back.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <p>
+      <button id="record-button">Start recording</button>
+      <button id="stop-button" disabled>Stop recording</button>
+    </p>
+    <div id="result"></div>
+    <script type="module" src="/recorder.ts"></script>
+  </body>
+</html>
