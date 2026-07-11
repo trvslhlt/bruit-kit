@@ -93,7 +93,7 @@ export class NoiseGenerator implements NoteTarget {
       gain.gain,
       this.audioContext,
       this.params,
-      velocity,
+      velocity / 127,
       startTime,
     );
     this.voices.set(note, { source, gain });

@@ -69,7 +69,7 @@ export class SamplePlayer implements NoteTarget {
       gain.gain,
       this.audioContext,
       this.params,
-      velocity,
+      velocity / 127,
       startTime,
     );
     if (this.params.oneShot) {

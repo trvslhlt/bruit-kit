@@ -61,7 +61,7 @@ export class OscillatorSynth implements NoteTarget {
       gain.gain,
       this.audioContext,
       this.params,
-      velocity,
+      velocity / 127,
       startTime,
     );
     this.voices.set(note, { osc, gain });

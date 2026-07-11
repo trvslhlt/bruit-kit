@@ -89,7 +89,7 @@ export class FmSynth implements NoteTarget {
       gain.gain,
       this.audioContext,
       this.params,
-      velocity,
+      velocity / 127,
       startTime,
     );
     this.voices.set(note, { carrier, modulator, modGain, gain });
