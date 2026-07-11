@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MidiPlaybackController demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>MidiPlaybackController</h1>
+    <p class="demo-note">
+      A short melody built programmatically with @tonejs/midi's track API
+      (no bundled .mid file needed), played through MidiPlaybackController
+      — loop/speed/chord/arp can all change live while it's playing.
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <button id="play-button">Play</button>
+      <button id="stop-button">Stop</button>
+      <label><input type="checkbox" id="loop-toggle" /> Loop</label>
+    </p>
+    <p id="position" class="demo-note"></p>
+    <div id="params"></div>
+    <p>
+      <label><input type="checkbox" id="chord-toggle" /> Chord</label>
+    </p>
+    <div id="chord-select"></div>
+    <p>
+      <label
+        ><input type="checkbox" id="arp-toggle" /> Arpeggiator</label
+      >
+    </p>
+    <div id="arp-params"></div>
+    <script type="module" src="/midi-midiplayer.ts"></script>
+  </body>
+</html>

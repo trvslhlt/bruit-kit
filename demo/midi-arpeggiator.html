@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArpeggiatorEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>ArpeggiatorEffect</h1>
+    <p class="demo-note">
+      Cycles through currently-held notes for as long as they're held.
+      A mouse usually only holds one key at a time — that's still enough
+      to hear rate/gate, but the up/down/random patterns need multiple
+      notes held at once (multi-touch, or a real MIDI controller wired to
+      this same target).
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <label
+        ><input type="checkbox" id="enabled-toggle" checked /> Arpeggiator
+        enabled</label
+      >
+    </p>
+    <div id="select"></div>
+    <div id="params"></div>
+    <div id="keyboard"></div>
+    <script type="module" src="/midi-arpeggiator.ts"></script>
+  </body>
+</html>

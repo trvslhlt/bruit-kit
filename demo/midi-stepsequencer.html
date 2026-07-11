@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StepSequencer demo</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../src/ui/stepSequencerEditor.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>StepSequencer</h1>
+    <p class="demo-note">
+      The scheduling core (stepSequencer.ts) paired with the step-grid UI
+      (stepSequencerEditor.ts) — each step has its own duration, so try
+      dragging a few sliders to different lengths for a non-uniform
+      rhythm, not just a fixed grid.
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <button id="play-button">Play</button>
+      <button id="stop-button">Stop</button>
+    </p>
+    <div id="editor"></div>
+    <script type="module" src="/midi-stepsequencer.ts"></script>
+  </body>
+</html>

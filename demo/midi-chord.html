@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChordEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>ChordEffect</h1>
+    <p class="demo-note">
+      Wraps a NoteTarget: one noteOn fans out to a full chord voicing built
+      from that note as the root. Turn it off to hear plain single notes
+      from the same keyboard.
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <label><input type="checkbox" id="enabled-toggle" checked /> Chord enabled</label>
+    </p>
+    <div id="select"></div>
+    <div id="keyboard"></div>
+    <script type="module" src="/midi-chord.ts"></script>
+  </body>
+</html>
