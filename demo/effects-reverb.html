@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReverbEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>ReverbEffect</h1>
+    <p class="demo-note">
+      A synthesized decaying-noise impulse response (no loaded IR file) fed
+      through a convolver, with pre-delay and a damping lowpass after it.
+      Decay regenerates the impulse buffer, so it updates a beat after you
+      release the slider.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-reverb.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LimiterEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>LimiterEffect</h1>
+    <p class="demo-note">
+      Every other demo in this app routes through a shared limiter for
+      safety (see shared/audioContext.ts's connectToOutput) — this one
+      deliberately bypasses that so you can hear what it prevents. Turn
+      your volume down first: with the limiter off, the four detuned
+      voices below sum well past 0dB and hard-clip on purpose.
+    </p>
+    <div id="unlock"></div>
+    <label
+      ><input type="checkbox" id="limiter-toggle" checked /> Limiter
+      on</label
+    >
+    <p>
+      <button id="chord-button">Hold for a hot detuned chord</button>
+    </p>
+    <script type="module" src="/effects-limiter.ts"></script>
+  </body>
+</html>

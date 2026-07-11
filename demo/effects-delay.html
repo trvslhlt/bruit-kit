@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DelayEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>DelayEffect</h1>
+    <p class="demo-note">
+      A tap/feedback delay line. Feedback is clamped to 0.95 internally, so
+      it can't run away no matter how far you push the slider.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-delay.ts"></script>
+  </body>
+</html>
