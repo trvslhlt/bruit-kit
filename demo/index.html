@@ -9,8 +9,70 @@
   <body>
     <h1>web-audio-toy-kit demos</h1>
     <p class="demo-note">
-      One page per component. Nav filled in as demos are added.
+      One page per component. Every demo routes its output through a
+      shared limiter (see shared/audioContext.ts) so nothing here can
+      clip your speakers, except LimiterEffect's own demo, which
+      deliberately bypasses it to show what that prevents.
     </p>
-    <nav id="nav"></nav>
+
+    <div class="demo-nav-group">
+      <h2>Effects</h2>
+      <ul>
+        <li><a href="effects-filter.html">FilterEffect</a></li>
+        <li><a href="effects-delay.html">DelayEffect</a></li>
+        <li><a href="effects-distortion.html">DistortionEffect</a></li>
+        <li><a href="effects-reverb.html">ReverbEffect</a></li>
+        <li><a href="effects-compressor.html">CompressorEffect</a></li>
+        <li><a href="effects-ringmod.html">RingModulationEffect</a></li>
+        <li><a href="effects-tremolo.html">TremoloEffect</a></li>
+        <li><a href="effects-limiter.html">LimiterEffect</a></li>
+      </ul>
+    </div>
+
+    <div class="demo-nav-group">
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="sources-granular.html">GranularSynth</a></li>
+        <li><a href="sources-oscillator.html">OscillatorSynth</a></li>
+        <li><a href="sources-sampleplayer.html">SamplePlayer</a></li>
+        <li><a href="sources-noise.html">NoiseGenerator</a></li>
+        <li><a href="sources-fm.html">FmSynth</a></li>
+      </ul>
+    </div>
+
+    <div class="demo-nav-group">
+      <h2>Midi toolkit</h2>
+      <ul>
+        <li><a href="midi-chord.html">ChordEffect</a></li>
+        <li><a href="midi-arpeggiator.html">ArpeggiatorEffect</a></li>
+        <li><a href="midi-midiplayer.html">MidiPlaybackController</a></li>
+        <li><a href="midi-stepsequencer.html">StepSequencer</a></li>
+      </ul>
+    </div>
+
+    <div class="demo-nav-group">
+      <h2>Automation &amp; modulation</h2>
+      <ul>
+        <li><a href="automation-editor.html">Automation</a></li>
+        <li><a href="modulation-lfo.html">LFO engine</a></li>
+      </ul>
+    </div>
+
+    <div class="demo-nav-group">
+      <h2>UI widgets</h2>
+      <ul>
+        <li><a href="ui-waveformview.html">createWaveformView</a></li>
+        <li>
+          <a href="ui-waveformrangeview.html">createWaveformRangeView</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="demo-nav-group">
+      <h2>Other</h2>
+      <ul>
+        <li><a href="recorder.html">Recorder</a></li>
+      </ul>
+    </div>
   </body>
 </html>
