@@ -5,3 +5,4 @@ export * from "./chordEffect";
 export * from "./arpeggiator";
 export * from "./fileTransforms";
 export * from "./midiPlayer";
+export * from "./stepSequencer";
