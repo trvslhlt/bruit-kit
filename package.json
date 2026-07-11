@@ -1,0 +1,37 @@
+{
+  "name": "web-audio-toy-kit",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "import": "./dist/ui/index.js"
+    },
+    "./ui/columns.css": "./dist/ui/columns.css",
+    "./ui/waveformView.css": "./dist/ui/waveformView.css",
+    "./ui/sliderControl.css": "./dist/ui/sliderControl.css",
+    "./audio": {
+      "types": "./dist/audio/index.d.ts",
+      "import": "./dist/audio/index.js"
+    },
+    "./midi": {
+      "types": "./dist/midi/index.d.ts",
+      "import": "./dist/midi/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "@tonejs/midi": "^2.0.28"
+  }
+}

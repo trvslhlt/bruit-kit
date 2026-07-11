@@ -1,0 +1,16 @@
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 2rem;
+  align-items: start;
+}
+
+.column {
+  min-width: 0; /* let flex/range children shrink instead of overflowing the column */
+}
+
+@media (max-width: 1000px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}

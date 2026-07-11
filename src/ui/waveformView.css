@@ -1,0 +1,21 @@
+.waveform-view {
+  background: #1b1d22;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.waveform-fill {
+  fill: #4c7dff;
+}
+
+.jitter-band {
+  fill: #ffb454;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.playhead-line {
+  stroke: #ffb454;
+  stroke-width: 2;
+  pointer-events: none;
+}

@@ -1,0 +1,14 @@
+services:
+  builder:
+    build:
+      context: .
+    # Deliberately no anonymous-volume override for node_modules here,
+    # unlike the sibling projects' dev containers — this package's whole
+    # point is to be bind-mounted *into other projects'* containers (see
+    # granular_midi's docker-compose.yml), which means its own
+    # node_modules (including transitive deps like @tonejs/midi that a
+    # consumer's TypeScript needs to resolve) must actually land on the
+    # host filesystem, not be hidden inside a Docker-managed volume
+    # exclusive to this container.
+    volumes:
+      - .:/app
