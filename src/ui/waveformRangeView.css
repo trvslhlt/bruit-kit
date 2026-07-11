@@ -1,0 +1,25 @@
+.waveform-range-svg {
+  width: 100%;
+  height: 80px;
+  display: block;
+  overflow: visible;
+  background: #1b1d22;
+  border-radius: 4px;
+}
+
+.waveform-range-line {
+  fill: #4c7dff;
+  opacity: 0.8;
+}
+
+.waveform-range-dim {
+  fill: #14161a;
+  opacity: 0.6;
+}
+
+.waveform-range-handle {
+  stroke: #ffb454;
+  stroke-width: 3;
+  cursor: ew-resize;
+  touch-action: none;
+}
