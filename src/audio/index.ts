@@ -4,6 +4,7 @@ export * from "./delayEffect";
 export * from "./distortionEffect";
 export * from "./reverbEffect";
 export * from "./compressorEffect";
+export * from "./limiterEffect";
 export * from "./ringModulationEffect";
 export * from "./tremoloEffect";
 export * from "./recorder";
