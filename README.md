@@ -26,6 +26,12 @@ sibling projects via a `file:` dependency.
   loop/speed/chord/arp changes without restarting playback), and
   Chord/Arpeggiator effects in both live (keyboard) and file-preprocessing
   forms.
+- **`web-audio-toy-kit/sources`** — things that *originate* audio, as
+  distinct from `audio`'s effects (which process an existing stream).
+  Currently one: `GranularSynth`, a from-scratch `AudioWorkletProcessor`-
+  based granular synthesis engine (implements `NoteTarget`, so it's a drop-
+  in `noteOn`/`noteOff` target for anything in `midi`). **Needs one extra
+  manual step** — see below.
 
 ## Using it from another project
 
@@ -45,6 +51,27 @@ whichever parts you need:
 import { createDryWet, FilterEffect } from "web-audio-toy-kit/audio";
 import { createWaveformView, bindSlider } from "web-audio-toy-kit/ui";
 import { MidiPlaybackController, ChordEffect } from "web-audio-toy-kit/midi";
+import { GranularSynth } from "web-audio-toy-kit/sources";
+```
+
+### `GranularSynth`'s extra step
+
+`AudioWorkletProcessor` scripts are loaded by
+`audioContext.audioWorklet.addModule(url)` — a runtime fetch of a URL, not
+a bundler-resolved import — so the raw processor script can't just be
+imported like everything else here. Copy it into your own app's static
+assets once:
+
+```
+cp node_modules/web-audio-toy-kit/dist/sources/granular-processor.js public/worklets/
+```
+
+Then either rely on the default (`GranularSynth` expects
+`/worklets/granular-processor.js` if you don't say otherwise), or point it
+at wherever you put the file:
+
+```ts
+new GranularSynth(audioContext, { workletUrl: "/some/other/path.js" });
 ```
 
 ## Develop

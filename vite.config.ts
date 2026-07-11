@@ -1,9 +1,10 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
-// Library mode with 3 independent entry points — consumers import
-// "web-audio-toy-kit/ui", "/audio", or "/midi" separately rather than one
-// monolithic bundle, since a project might only want one or two parts.
+// Library mode with 4 independent entry points — consumers import
+// "web-audio-toy-kit/ui", "/audio", "/midi", or "/sources" separately
+// rather than one monolithic bundle, since a project might only want one
+// or two parts.
 export default defineConfig({
   build: {
     lib: {
@@ -11,6 +12,7 @@ export default defineConfig({
         ui: resolve(__dirname, "src/ui/index.ts"),
         audio: resolve(__dirname, "src/audio/index.ts"),
         midi: resolve(__dirname, "src/midi/index.ts"),
+        sources: resolve(__dirname, "src/sources/index.ts"),
       },
       formats: ["es"],
     },
