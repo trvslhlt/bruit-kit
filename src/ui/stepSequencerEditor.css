@@ -1,0 +1,65 @@
+.step-sequencer-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.step-sequencer-count input {
+  width: 60px;
+}
+
+.step-sequencer-grid {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.step-sequencer-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.step-sequencer-toggle {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: #2a2d34;
+  border: 1px solid #3a3e47;
+  cursor: pointer;
+}
+
+.step-sequencer-toggle-on {
+  background: #4c7dff;
+  border-color: #4c7dff;
+}
+
+.step-sequencer-cell-active .step-sequencer-toggle {
+  box-shadow: 0 0 0 2px #ffb454;
+}
+
+.step-sequencer-duration label {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  margin-bottom: 0;
+  font-size: 0.7rem;
+}
+
+.step-sequencer-duration .control-name,
+.step-sequencer-duration .range-min,
+.step-sequencer-duration .range-max {
+  display: none;
+}
+
+.step-sequencer-duration input[type="range"] {
+  max-width: none;
+  width: 100%;
+}
+
+.step-sequencer-duration .range-value {
+  text-align: center;
+  width: auto;
+}

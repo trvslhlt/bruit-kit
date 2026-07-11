@@ -13,6 +13,7 @@
     "./ui/waveformRangeView.css": "./dist/ui/waveformRangeView.css",
     "./ui/sliderControl.css": "./dist/ui/sliderControl.css",
     "./ui/automationEditor.css": "./dist/ui/automationEditor.css",
+    "./ui/stepSequencerEditor.css": "./dist/ui/stepSequencerEditor.css",
     "./audio": {
       "types": "./dist/audio/index.d.ts",
       "import": "./dist/audio/index.js"
