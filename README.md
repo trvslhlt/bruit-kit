@@ -1,46 +1,44 @@
 # web-audio-toy-kit
 
-Small, reusable pieces extracted from [granular_midi](../granular_midi):
-generic Web Audio / vanilla-DOM infrastructure with no dependency on any
-specific synth or app. Not published to npm — meant to be consumed by
-sibling projects via a `file:` dependency.
+Reusable Web Audio / vanilla-DOM building blocks — effects, sound sources, a
+MIDI performance toolkit, and UI widgets — with no dependency on any
+specific synth or app. Not published to npm; consumed by sibling projects
+via a `file:` dependency.
 
-## Parts
+## Demo
 
-- **`web-audio-toy-kit/audio`** — dry/wet crossfade helper (`createDryWet`);
-  seven effects, each with many params and (except `LimiterEffect`, which
-  is always fully engaged as an end-of-chain safety net) a dry/wet control:
-  filter, delay, distortion, reverb (synthesized decaying-noise impulse,
-  not a loaded IR), compressor, ring modulation, tremolo, and limiter; a
-  `MediaRecorder` capture-to-download `Recorder`; a small LFO modulation
-  engine (fixed slots, each assignable to either a worklet-internal param
-  or a native `AudioParam`, given the app's own target registry — see
-  `granular_midi/frontend/src/modulation/lfoTargets.ts` for an example of
-  building one); and `scheduleAutomation`/`startAutomationLoop`, which
-  schedule an `AutomationPoint[]` breakpoint curve (see `ui` below) onto
-  any real `AudioParam` over a given duration, once or looping.
-- **`web-audio-toy-kit/ui`** — a waveform-preview-with-playhead-scrubber
-  widget (`createWaveformView`), a two-handle waveform range-selector
-  (`createWaveformRangeView`, for picking a `{start, end}` sub-range), a
-  multi-point breakpoint-curve editor (`createAutomationEditor` — drag
-  points to reshape, double-click to add/remove, pairs with
-  `audio`'s `scheduleAutomation` but has no dependency on it), and
-  labeled-range-slider helpers (`rangeControl`/`bindSlider`), all vanilla
-  DOM, no framework. Pairs with `web-audio-toy-kit/ui/waveformView.css`,
-  `/waveformRangeView.css`, `/automationEditor.css`, `/sliderControl.css`,
-  and `/columns.css` (a small 3-column responsive control-panel grid).
-- **`web-audio-toy-kit/midi`** — a generic MIDI-performance toolkit: the
-  `NoteTarget`/`ClockedNoteTarget` abstraction everything else is built on,
-  `@tonejs/midi` file loading, a stateful `MidiPlaybackController` (live
-  loop/speed/chord/arp changes without restarting playback), and
-  Chord/Arpeggiator effects in both live (keyboard) and file-preprocessing
-  forms.
+A live, one-page-per-component demo app lives in `demo/`:
+
+```
+npm run demo          # dev server at http://localhost:5173
+make demo             # same, from inside the Docker container (see below)
+```
+
+Every demo page needs one click to enable audio (browser autoplay policy),
+then exercises exactly one component — effects, sources, and MIDI pieces
+each get their own focused page rather than one big kitchen-sink app. It
+imports straight from `src/`, not the built `dist/`, so it always reflects
+what's currently in the repo with no build step first.
+
+## Subpackages
+
+- **`web-audio-toy-kit/audio`** — audio effects (each with a dry/wet
+  control, except the always-fully-engaged safety limiter), a
+  `MediaRecorder`-based recorder, an LFO modulation engine, and
+  breakpoint-curve automation scheduling.
+- **`web-audio-toy-kit/ui`** — vanilla-DOM widgets (waveform views, a
+  breakpoint-curve editor, a step-sequencer grid, slider helpers), each
+  paired with its own `.css` file.
+- **`web-audio-toy-kit/midi`** — the `NoteTarget`/`ClockedNoteTarget`
+  abstraction everything else is built on, MIDI file playback, and
+  performance effects (chord, arpeggiator, step sequencer) usable live or
+  applied to a file.
 - **`web-audio-toy-kit/sources`** — things that *originate* audio, as
-  distinct from `audio`'s effects (which process an existing stream).
-  Currently one: `GranularSynth`, a from-scratch `AudioWorkletProcessor`-
-  based granular synthesis engine (implements `NoteTarget`, so it's a drop-
-  in `noteOn`/`noteOff` target for anything in `midi`). **Needs one extra
-  manual step** — see below.
+  distinct from `audio`'s effects (which process an existing stream):
+  oscillator, sample, noise, FM, and granular synths.
+
+See `demo/` for what each part actually looks/sounds like, or the source
+under `src/<part>/` for the full API.
 
 ## Using it from another project
 
@@ -83,15 +81,39 @@ at wherever you put the file:
 new GranularSynth(audioContext, { workletUrl: "/some/other/path.js" });
 ```
 
-## Develop
+(`demo/sources-granular.ts` does the same thing for the demo app's own copy
+under `demo/public/worklets/` — a working example of the same step.)
+
+## Contributing
 
 Docker-only, same convention as the sibling projects — no Node needed on
 the host:
 
 ```
-make up
-make build      # compiles dist/ — do this before a consuming project's
-                 # npm install picks up changes
+make up          # start the (long-running) builder container
+make demo         # run the demo app's dev server at http://localhost:5173
 make lint
+make format
 make typecheck
+make build        # compiles dist/ -- do this before a consuming project's
+                   # npm install picks up changes
 ```
+
+A few things worth knowing before adding to this repo:
+
+- Every part (`audio`, `ui`, `midi`, `sources`) is independently importable
+  — no part should import from another's internals, only from another
+  part's public exports (see `vite.config.ts`'s four separate library entry
+  points).
+- `ui/` code stays free of any Web Audio dependency, and `audio`/`midi`
+  code stays free of any DOM dependency, even where two modules are clearly
+  a pair (e.g. `audio/automation.ts` + `ui/automationEditor.ts`) — shapes
+  get duplicated locally rather than imported across that boundary.
+- New effects/sources typically pair a `<Thing>Params` interface with a
+  `setParams(partial)` method; effects additionally wrap their signal path
+  with `audio/dryWet.ts`'s `createDryWet`.
+- `demo/` has its own `tsconfig.json`/`vite.config.ts`, deliberately
+  separate from the root's (which builds the published library) — adding a
+  new component should come with a matching `demo/<part>-<name>.html` +
+  `.ts` pair (`npm run typecheck:demo` checks these; `demo/vite.config.ts`
+  picks up new `.html` files automatically).
