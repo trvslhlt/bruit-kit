@@ -90,14 +90,23 @@ Docker-only, same convention as the sibling projects — no Node needed on
 the host:
 
 ```
-make up          # start the (long-running) builder container
-make demo         # run the demo app's dev server at http://localhost:5173
+make up            # start the (long-running) builder container -- run this first
+make demo          # run the demo app's dev server at http://localhost:5173
 make lint
 make format
 make typecheck
-make build        # compiles dist/ -- do this before a consuming project's
-                   # npm install picks up changes
+make build          # compiles dist/ -- do this before a consuming project's
+                     # npm install picks up changes
 ```
+
+`make up` has to run (and succeed) before any other target — `make demo`,
+`make lint`, etc. all `docker compose exec` into the container `make up`
+started, so if it isn't running they fail with "service ... is not
+running." The container stays up in the background afterwards (it has no
+dev server of its own; `make demo` execs `npm run demo` into it on demand),
+so you only need to run `make up` again if you've stopped it (`make down`)
+or changed `Dockerfile`/`docker-compose.yml` — a plain `exec` into an
+already-running container won't pick up either kind of change.
 
 A few things worth knowing before adding to this repo:
 
