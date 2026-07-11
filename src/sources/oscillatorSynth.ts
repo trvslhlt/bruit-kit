@@ -1,5 +1,5 @@
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import type { NoteTarget } from "../midi/noteTarget";
+import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import { midiToFrequency } from "./pitch";
 
 export interface OscillatorSynthParams extends AdsrParams {
@@ -38,8 +38,7 @@ export class OscillatorSynth implements NoteTarget {
     if (params.waveform !== undefined || params.detune !== undefined) {
       for (const voice of this.voices.values()) {
         if (params.waveform !== undefined) voice.osc.type = params.waveform;
-        if (params.detune !== undefined)
-          voice.osc.detune.value = params.detune;
+        if (params.detune !== undefined) voice.osc.detune.value = params.detune;
       }
     }
   }
@@ -58,7 +57,13 @@ export class OscillatorSynth implements NoteTarget {
     osc.connect(gain).connect(this.output);
     osc.start(startTime);
 
-    triggerAttack(gain.gain, this.audioContext, this.params, velocity, startTime);
+    triggerAttack(
+      gain.gain,
+      this.audioContext,
+      this.params,
+      velocity,
+      startTime,
+    );
     this.voices.set(note, { osc, gain });
   }
 

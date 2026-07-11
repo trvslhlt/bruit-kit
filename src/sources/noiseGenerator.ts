@@ -1,5 +1,5 @@
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import type { NoteTarget } from "../midi/noteTarget";
+import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 
 export type NoiseType = "white" | "pink";
 
@@ -89,7 +89,13 @@ export class NoiseGenerator implements NoteTarget {
     source.connect(gain).connect(this.output);
     source.start(startTime);
 
-    triggerAttack(gain.gain, this.audioContext, this.params, velocity, startTime);
+    triggerAttack(
+      gain.gain,
+      this.audioContext,
+      this.params,
+      velocity,
+      startTime,
+    );
     this.voices.set(note, { source, gain });
   }
 

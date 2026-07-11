@@ -1,5 +1,5 @@
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import type { NoteTarget } from "../midi/noteTarget";
+import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import { semitoneRatio } from "./pitch";
 
 export interface SamplePlayerParams extends AdsrParams {
@@ -65,7 +65,13 @@ export class SamplePlayer implements NoteTarget {
     source.connect(gain).connect(this.output);
     source.start(startTime);
 
-    triggerAttack(gain.gain, this.audioContext, this.params, velocity, startTime);
+    triggerAttack(
+      gain.gain,
+      this.audioContext,
+      this.params,
+      velocity,
+      startTime,
+    );
     if (this.params.oneShot) {
       source.onended = () => {
         source.disconnect();

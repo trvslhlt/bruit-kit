@@ -1,5 +1,5 @@
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import type { NoteTarget } from "../midi/noteTarget";
+import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 import { midiToFrequency } from "./pitch";
 
 export interface FmSynthParams extends AdsrParams {
@@ -85,7 +85,13 @@ export class FmSynth implements NoteTarget {
     carrier.start(startTime);
     modulator.start(startTime);
 
-    triggerAttack(gain.gain, this.audioContext, this.params, velocity, startTime);
+    triggerAttack(
+      gain.gain,
+      this.audioContext,
+      this.params,
+      velocity,
+      startTime,
+    );
     this.voices.set(note, { carrier, modulator, modGain, gain });
   }
 
