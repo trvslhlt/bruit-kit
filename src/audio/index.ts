@@ -1,4 +1,6 @@
 export * from "./dryWet";
+export * from "./chainEffects";
+export * from "./send";
 export * from "./filterEffect";
 export * from "./delayEffect";
 export * from "./distortionEffect";

@@ -5,13 +5,20 @@ export interface SequencerStep {
   notes: number[];
   /** 0-127, applied to every note in this step. */
   velocity: number;
-  /** 0-1: fraction of this step's duration the notes are held before their
-   * noteOff fires. */
+  /** Fraction of this step's duration the notes are held before their
+   * noteOff fires — typically 0-1, but not clamped: a value above 1 holds
+   * past this step's own slot, e.g. for an explicit-duration trigger mode
+   * that outlives the grid position that started it. */
   gate: number;
   /** This step's own length in seconds — the "rhythm": steps don't have to
    * be equal length, so a pattern of e.g. 1, 1.5, 1 seconds just means
    * three steps with those durationSeconds values. */
   durationSeconds: number;
+  /** Optional early(-)/late(+) nudge in seconds, applied only to this
+   * step's own noteOn/noteOff times — never to the sequencer's grid
+   * advance, so a shift is a local nudge around this step's nominal
+   * position, not a permanent drift of every step after it. */
+  timeShiftSeconds?: number;
 }
 
 interface ScheduledStep {
@@ -141,10 +148,18 @@ export class StepSequencer {
       Math.max(this.speed, 0.01);
 
     if (step.notes.length > 0) {
+      // The shift only moves *this* step's own noteOn/noteOff times —
+      // nextStepTime below still advances from the unshifted atTime, so a
+      // shift can't drift the grid position of anything after it. A shift
+      // larger than the remaining lookahead margin at the moment this
+      // fires simply can't reach further into the past than "now": Web
+      // Audio clamps a start()/stop() time that's already elapsed to
+      // immediate playback rather than erroring.
+      const shiftedAtTime = atTime + (step.timeShiftSeconds ?? 0);
       const gateSeconds = durationSeconds * step.gate;
       for (const note of step.notes) {
-        this.target.noteOn(note, step.velocity, atTime);
-        this.target.noteOff(note, atTime + gateSeconds);
+        this.target.noteOn(note, step.velocity, shiftedAtTime);
+        this.target.noteOff(note, shiftedAtTime + gateSeconds);
       }
     }
 
