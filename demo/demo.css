@@ -1,5 +1,9 @@
 @import "../src/ui/columns.css";
 @import "../src/ui/sliderControl.css";
+@import "../src/ui/automationEditor.css";
+@import "../src/ui/stepSequencerEditor.css";
+@import "../src/ui/waveformView.css";
+@import "../src/ui/waveformRangeView.css";
 
 :root {
   color-scheme: dark;
