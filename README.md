@@ -92,6 +92,7 @@ the host:
 ```
 make up            # start the (long-running) builder container -- run this first
 make demo          # run the demo app's dev server at http://localhost:5173
+make test          # run the e2e suite against the demo app (Playwright)
 make lint
 make format
 make typecheck
@@ -126,3 +127,10 @@ A few things worth knowing before adding to this repo:
   new component should come with a matching `demo/<part>-<name>.html` +
   `.ts` pair (`npm run typecheck:demo` checks these; `demo/vite.config.ts`
   picks up new `.html` files automatically).
+- `e2e/` (also its own `tsconfig.json`, checked by `npm run typecheck:e2e`)
+  has a generic test that loads every `demo/*.html` page and fails on any
+  console error — new demo pages are covered automatically, nothing to
+  add there. A bug that only shows up visually (wrong size, wrong color,
+  nothing thrown) needs its own targeted test instead — see
+  `e2e/step-sequencer.spec.ts` for the pattern: assert on an actual
+  rendered `boundingBox()`, not just the absence of an error.

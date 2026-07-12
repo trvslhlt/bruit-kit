@@ -1,4 +1,4 @@
-.PHONY: up down shell lint format typecheck build demo
+.PHONY: up down shell lint format typecheck build demo test
 
 # Start the builder container (stays alive, no dev server — see Dockerfile).
 up:
@@ -27,3 +27,8 @@ build:
 # from inside the container.
 demo:
 	docker compose exec builder npm run demo -- --host 0.0.0.0
+
+# Playwright's own webServer config starts/stops the demo dev server
+# around the test run -- no need for `make demo` to already be running.
+test:
+	docker compose exec builder npm run test:e2e
