@@ -84,7 +84,6 @@ export class SamplePlayer implements NoteTarget {
   }
 
   noteOff(note: number, time?: number): void {
-    if (this.params.oneShot) return;
     const voice = this.voices.get(note);
     if (!voice) return;
     const atTime = time ?? this.audioContext.currentTime;
