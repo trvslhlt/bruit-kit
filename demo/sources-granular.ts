@@ -11,10 +11,15 @@ const directPlayButtonEl = document.querySelector<HTMLButtonElement>(
 )!;
 const statusEl = document.querySelector<HTMLParagraphElement>("#status")!;
 const keyboardEl = document.querySelector<HTMLDivElement>("#keyboard")!;
-const selectEl = document.querySelector<HTMLDivElement>("#select")!;
+const playheadSelectEl =
+  document.querySelector<HTMLDivElement>("#select-playhead")!;
+const durationModeSelectEl = document.querySelector<HTMLDivElement>(
+  "#select-duration-mode",
+)!;
 const paramsEl = document.querySelector<HTMLDivElement>("#params")!;
 
 const PLAYHEAD_MODES = ["shared", "per-note"] as const;
+const GRAIN_DURATION_MODES = ["random", "envelope"] as const;
 
 unlockAudioContext(unlockEl).then(async (audioContext) => {
   const synth = new GranularSynth(audioContext);
@@ -44,11 +49,19 @@ unlockAudioContext(unlockEl).then(async (audioContext) => {
   );
 
   renderSelect(
-    selectEl,
+    playheadSelectEl,
     "Playhead mode",
     PLAYHEAD_MODES,
     "shared",
     (playheadMode) => synth.setParams({ playheadMode }),
+  );
+
+  renderSelect(
+    durationModeSelectEl,
+    "Grain duration mode",
+    GRAIN_DURATION_MODES,
+    "random",
+    (grainDurationMode) => synth.setParams({ grainDurationMode }),
   );
 
   renderParamPanel(paramsEl, [

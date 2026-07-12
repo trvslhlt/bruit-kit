@@ -51,6 +51,13 @@ class GranularProcessor extends AudioWorkletProcessor {
       panSpread: 0.5,
       scanSpeed: 1,
       playheadMode: "shared", // "shared" | "per-note"
+      // "random": grainDurationMs is picked uniformly from
+      // [grainDurationMinMs, grainDurationMaxMs] regardless of envelope
+      // phase (original behavior). "envelope": the top of that range
+      // scales with voice.envValue, so grains start short (attack),
+      // lengthen toward grainDurationMaxMs at sustain, then shorten again
+      // through release -- the same shape densityHz already follows below.
+      grainDurationMode: "random", // "random" | "envelope"
       attackMs: 20,
       decayMs: 150,
       sustainLevel: 0.7,
@@ -298,7 +305,15 @@ class GranularProcessor extends AudioWorkletProcessor {
     // ordered here too, in case the UI's own min<=max clamping is bypassed.
     const lo = Math.min(grainDurationMinMs, grainDurationMaxMs);
     const hi = Math.max(grainDurationMinMs, grainDurationMaxMs);
-    const grainDurationMs = lo + Math.random() * (hi - lo);
+    // In "envelope" mode the top of the range tracks voice.envValue instead
+    // of always being the configured max, so grains lengthen through
+    // attack/sustain and shorten again through release (see the
+    // grainDurationMode default's doc comment above).
+    const effectiveHi =
+      this.params.grainDurationMode === "envelope"
+        ? lo + (hi - lo) * voice.envValue
+        : hi;
+    const grainDurationMs = lo + Math.random() * (effectiveHi - lo);
     const lengthSamples = Math.max(
       1,
       Math.round((grainDurationMs / 1000) * sampleRate),
@@ -344,6 +359,8 @@ class GranularProcessor extends AudioWorkletProcessor {
     // The envelope drives grain density as well as amplitude: sparse
     // grains during attack build to full density, thinning out again
     // through release, rather than just fading a constant grain stream.
+    // (Grain *duration* optionally follows the same envelope too -- see
+    // spawnGrain's grainDurationMode handling.)
     const effectiveDensity = Math.max(densityHz * voice.envValue, 0.1);
     const spacing = 1 / effectiveDensity;
     voice.timeSinceLastGrain += blockDuration;

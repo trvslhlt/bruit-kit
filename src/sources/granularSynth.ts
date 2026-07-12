@@ -8,9 +8,17 @@ import type { NoteEvent, NoteTarget } from "../midi/noteTarget";
 
 export interface GrainParams {
   /** Each spawned grain gets its own random length in [min, max] ms, rather
-   * than a single fixed duration. */
+   * than a single fixed duration. Which end of that range moves is set by
+   * grainDurationMode. */
   grainDurationMinMs: number;
   grainDurationMaxMs: number;
+  /** "random" (default): duration is picked uniformly across the full
+   * min/max range regardless of envelope phase. "envelope": the top of
+   * the range scales with the voice's ADSR envelope, so grains start
+   * short (attack), lengthen toward grainDurationMaxMs at sustain, then
+   * shorten again through release — the same shape densityHz already
+   * follows unconditionally (see granular-processor.js's spawnGrain). */
+  grainDurationMode: "random" | "envelope";
   densityHz: number;
   positionJitterMs: number;
   pitchJitterCents: number;
