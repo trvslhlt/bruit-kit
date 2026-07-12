@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StepClock + StepTrack demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>StepClock + StepTrack</h1>
+    <p class="demo-note">
+      One shared createStepClock driving two independent createStepTrack
+      rows — an OscillatorSynth and a NoiseGenerator — instead of each row
+      owning its own clock. Row B starts inactive; "Enable Row B" only
+      takes effect at the start of the next 8-step cycle, not immediately,
+      proving a row can join mid-performance without resyncing anything.
+    </p>
+    <div id="unlock"></div>
+    <p>
+      <button id="play-button">Play</button>
+      <button id="stop-button">Stop</button>
+    </p>
+    <div id="params"></div>
+    <p>
+      <strong>Row A</strong> (OscillatorSynth)
+      <label><input type="checkbox" id="mute-a" /> Mute</label>
+    </p>
+    <div id="row-a"></div>
+    <p>
+      <strong>Row B</strong> (NoiseGenerator)
+      <label><input type="checkbox" id="mute-b" /> Mute</label>
+      <button id="enable-row-b-button">Enable Row B</button>
+      <span id="row-b-status" class="demo-note"></span>
+    </p>
+    <div id="row-b"></div>
+    <script type="module" src="/midi-stepclock.ts"></script>
+  </body>
+</html>

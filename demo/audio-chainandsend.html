@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chainEffects + createSend demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>chainEffects + createSend</h1>
+    <p class="demo-note">
+      Two rows, each with its own persistent insert chain (chainEffects),
+      each sending a different, independently adjustable amount
+      (createSend) into one shared reverb bus — one ConvolverNode total,
+      not one per row.
+    </p>
+    <div id="unlock"></div>
+
+    <h2>Row A (filter + distortion)</h2>
+    <div id="keyboard-a"></div>
+    <div id="params-a"></div>
+
+    <h2>Row B (filter only)</h2>
+    <div id="keyboard-b"></div>
+    <div id="params-b"></div>
+
+    <h2>Shared reverb bus</h2>
+    <div id="params-reverb"></div>
+    <script type="module" src="/audio-chainandsend.ts"></script>
+  </body>
+</html>
