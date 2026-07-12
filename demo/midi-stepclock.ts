@@ -139,7 +139,13 @@ unlockAudioContext(unlockEl).then((audioContext) => {
   ]);
 
   function tick(): void {
-    const active = clock.getCurrentStepIndex();
+    // getCurrentStepIndex() is the clock's own raw, ever-incrementing tick
+    // count -- it has no idea any row is 8 cells wide, that's
+    // createStepTrack's own internal wrapping. Wrap it the same way here
+    // for the playhead highlight, or it climbs past the last cell after
+    // one cycle and never lights anything again.
+    const rawActive = clock.getCurrentStepIndex();
+    const active = rawActive === null ? null : rawActive % STEP_COUNT;
     for (const cells of [cellsA, cellsB]) {
       cells.forEach((cell, i) => {
         cell.style.boxShadow = i === active ? "0 0 0 2px #ffb454" : "none";
