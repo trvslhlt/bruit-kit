@@ -18,10 +18,26 @@ unlockAudioContext(unlockEl).then((audioContext) => {
   let buffer = createTestBuffer(audioContext);
   let activeSource: AudioBufferSourceNode | null = null;
 
+  function play(): void {
+    activeSource?.stop();
+    const range = view.getRange();
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = range.start * buffer.duration;
+    source.loopEnd = range.end * buffer.duration;
+    connectToOutput(source, audioContext);
+    source.start(0, source.loopStart);
+    activeSource = source;
+  }
+
   const view = createWaveformRangeView(waveformEl, {
     initialRange: { start: 0.2, end: 0.8 },
     onChange: (range) => {
       rangeTextEl.textContent = formatRange(range.start, range.end);
+      // Only retrigger if something's already playing -- dragging the
+      // handles shouldn't start playback on its own, just live-update it.
+      if (activeSource) play();
     },
   });
   view.setBuffer(buffer);
@@ -35,18 +51,7 @@ unlockAudioContext(unlockEl).then((audioContext) => {
     view.setRange(view.getRange());
   });
 
-  playButtonEl.addEventListener("click", () => {
-    activeSource?.stop();
-    const range = view.getRange();
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.loopStart = range.start * buffer.duration;
-    source.loopEnd = range.end * buffer.duration;
-    connectToOutput(source, audioContext);
-    source.start(0, source.loopStart);
-    activeSource = source;
-  });
+  playButtonEl.addEventListener("click", play);
 
   stopButtonEl.addEventListener("click", () => {
     activeSource?.stop();
