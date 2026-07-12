@@ -8,7 +8,7 @@ const keyboardEl = document.querySelector<HTMLDivElement>("#keyboard")!;
 const selectEl = document.querySelector<HTMLDivElement>("#select")!;
 const paramsEl = document.querySelector<HTMLDivElement>("#params")!;
 
-const NOISE_TYPES = ["white", "pink"] as const;
+const NOISE_TYPES = ["white", "pink", "brown"] as const;
 
 unlockAudioContext(unlockEl).then((audioContext) => {
   const noise = new NoiseGenerator(audioContext);

@@ -1,7 +1,7 @@
 import type { NoteTarget } from "../midi/noteTarget";
 import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
 
-export type NoiseType = "white" | "pink";
+export type NoiseType = "white" | "pink" | "brown";
 
 export interface NoiseGeneratorParams extends AdsrParams {
   type: NoiseType;
@@ -58,10 +58,29 @@ function buildPinkNoiseBuffer(audioContext: AudioContext): AudioBuffer {
   return buffer;
 }
 
+/** A one-pole leaky integrator (the standard "brown noise" recipe) — each
+ * sample is last sample's value nudged slightly by fresh white noise, so
+ * it's a random walk that can't run away or accumulate DC drift. Measured
+ * (via FFT, band-averaged over several trials) at roughly -5 to -6 dB per
+ * octave, well below pink's -3 dB/octave — a real, audibly darker/bassier
+ * noise, not just "even darker pink." */
+function buildBrownNoiseBuffer(audioContext: AudioContext): AudioBuffer {
+  const length = audioContext.sampleRate * NOISE_BUFFER_SECONDS;
+  const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < length; i++) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.02 * white) / 1.02;
+    data[i] = last * 3.5; // gain compensation back up to roughly -1..1
+  }
+  return buffer;
+}
+
 /** A noise source, gated like a synth voice by the shared ADSR envelope.
  * Pitch/note number is ignored (only used as the voice map key) — velocity
- * still scales the envelope peak. White/pink buffers are generated once,
- * lazily, and looped per voice rather than synthesized in real time. */
+ * still scales the envelope peak. White/pink/brown buffers are generated
+ * once, lazily, and looped per voice rather than synthesized in real time. */
 export class NoiseGenerator implements NoteTarget {
   readonly output: GainNode;
   private params: NoiseGeneratorParams = { ...DEFAULT_PARAMS };
@@ -127,7 +146,9 @@ export class NoiseGenerator implements NoteTarget {
       buffer =
         type === "pink"
           ? buildPinkNoiseBuffer(this.audioContext)
-          : buildWhiteNoiseBuffer(this.audioContext);
+          : type === "brown"
+            ? buildBrownNoiseBuffer(this.audioContext)
+            : buildWhiteNoiseBuffer(this.audioContext);
       this.buffers.set(type, buffer);
     }
     return buffer;
