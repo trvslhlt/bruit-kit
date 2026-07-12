@@ -5,6 +5,12 @@ MIDI performance toolkit, and UI widgets — with no dependency on any
 specific synth or app. Not published to npm; consumed by sibling projects
 via a `file:` dependency.
 
+Hosted at [github.com/trvslhlt/bruit-kit](https://github.com/trvslhlt/bruit-kit):
+
+```
+git clone https://github.com/trvslhlt/bruit-kit.git
+```
+
 ## Demo
 
 A live, one-page-per-component demo app lives in `demo/`:
