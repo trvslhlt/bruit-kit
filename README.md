@@ -1,4 +1,4 @@
-# web-audio-toy-kit
+# bruit-kit
 
 Reusable Web Audio / vanilla-DOM building blocks — effects, sound sources, a
 MIDI performance toolkit, and UI widgets — with no dependency on any
@@ -22,18 +22,18 @@ what's currently in the repo with no build step first.
 
 ## Subpackages
 
-- **`web-audio-toy-kit/audio`** — audio effects (each with a dry/wet
+- **`bruit-kit/audio`** — audio effects (each with a dry/wet
   control, except the always-fully-engaged safety limiter), a
   `MediaRecorder`-based recorder, an LFO modulation engine, and
   breakpoint-curve automation scheduling.
-- **`web-audio-toy-kit/ui`** — vanilla-DOM widgets (waveform views, a
+- **`bruit-kit/ui`** — vanilla-DOM widgets (waveform views, a
   breakpoint-curve editor, a step-sequencer grid, slider helpers), each
   paired with its own `.css` file.
-- **`web-audio-toy-kit/midi`** — the `NoteTarget`/`ClockedNoteTarget`
+- **`bruit-kit/midi`** — the `NoteTarget`/`ClockedNoteTarget`
   abstraction everything else is built on, MIDI file playback, and
   performance effects (chord, arpeggiator, step sequencer) usable live or
   applied to a file.
-- **`web-audio-toy-kit/sources`** — things that *originate* audio, as
+- **`bruit-kit/sources`** — things that *originate* audio, as
   distinct from `audio`'s effects (which process an existing stream):
   oscillator, sample, noise, FM, and granular synths.
 
@@ -47,7 +47,7 @@ a sibling project's `package.json`:
 
 ```json
 "dependencies": {
-  "web-audio-toy-kit": "file:../web-audio-toy-kit"
+  "bruit-kit": "file:../bruit-kit"
 }
 ```
 
@@ -55,10 +55,10 @@ Then `npm install` (build this package first — see below) and import from
 whichever parts you need:
 
 ```ts
-import { createDryWet, FilterEffect } from "web-audio-toy-kit/audio";
-import { createWaveformView, bindSlider } from "web-audio-toy-kit/ui";
-import { MidiPlaybackController, ChordEffect } from "web-audio-toy-kit/midi";
-import { GranularSynth } from "web-audio-toy-kit/sources";
+import { createDryWet, FilterEffect } from "bruit-kit/audio";
+import { createWaveformView, bindSlider } from "bruit-kit/ui";
+import { MidiPlaybackController, ChordEffect } from "bruit-kit/midi";
+import { GranularSynth } from "bruit-kit/sources";
 ```
 
 ### `GranularSynth`'s extra step
@@ -70,7 +70,7 @@ imported like everything else here. Copy it into your own app's static
 assets once:
 
 ```
-cp node_modules/web-audio-toy-kit/dist/sources/granular-processor.js public/worklets/
+cp node_modules/bruit-kit/dist/sources/granular-processor.js public/worklets/
 ```
 
 Then either rely on the default (`GranularSynth` expects
