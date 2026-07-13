@@ -61,9 +61,13 @@ export class FmSynth implements NoteTarget {
   }
 
   noteOn(note: number, velocity: number, time?: number): void {
-    this.stopVoice(note, this.audioContext.currentTime);
-
     const startTime = time ?? this.audioContext.currentTime;
+    // See the matching comment in oscillatorSynth.ts's noteOn -- stopping
+    // a stale same-note voice at real "now" instead of this note's own
+    // start time truncates its already-scheduled graceful release
+    // mid-flight, audible as a click.
+    this.stopVoice(note, startTime);
+
     const carrierFreq = midiToFrequency(note);
 
     const carrier = this.audioContext.createOscillator();

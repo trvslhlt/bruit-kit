@@ -13,7 +13,7 @@ interface Voice {
 }
 
 const DEFAULT_PARAMS: OscillatorSynthParams = {
-  waveform: "sawtooth",
+  waveform: "sine",
   detune: 0,
   attackMs: 5,
   decayMs: 150,
@@ -44,9 +44,19 @@ export class OscillatorSynth implements NoteTarget {
   }
 
   noteOn(note: number, velocity: number, time?: number): void {
-    this.stopVoice(note, this.audioContext.currentTime);
-
     const startTime = time ?? this.audioContext.currentTime;
+    // Cut off a stale same-note voice at *this* note's own start time, not
+    // real "now" -- a lookahead scheduler calls noteOn well ahead of when a
+    // note is actually audible, and since noteOff no longer deletes a
+    // voice from `voices` synchronously (see its own doc comment), a
+    // previous voice can still be tracked here purely because its onended
+    // hasn't fired yet in real time, even though it already has its own
+    // graceful release scheduled to finish on its own. Stopping it at
+    // real-now would truncate that release mid-flight, audible as a click;
+    // stopping it at startTime is a no-op whenever the two don't actually
+    // overlap (the common case), and a clean handoff when they do.
+    this.stopVoice(note, startTime);
+
     const osc = this.audioContext.createOscillator();
     osc.type = this.params.waveform;
     osc.detune.value = this.params.detune;

@@ -52,9 +52,13 @@ export class SamplePlayer implements NoteTarget {
 
   noteOn(note: number, velocity: number, time?: number): void {
     if (!this.buffer) return;
-    this.stopVoice(note, this.audioContext.currentTime);
-
     const startTime = time ?? this.audioContext.currentTime;
+    // See the matching comment in oscillatorSynth.ts's noteOn -- stopping
+    // a stale same-note voice at real "now" instead of this note's own
+    // start time truncates its already-scheduled graceful release
+    // mid-flight, audible as a click.
+    this.stopVoice(note, startTime);
+
     const source = this.audioContext.createBufferSource();
     source.buffer = this.buffer;
     source.loop = this.params.loop;

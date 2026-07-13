@@ -22,21 +22,24 @@ export interface AutomationValueRange {
 const DEFAULT_VALUE_RANGE: AutomationValueRange = { min: 0, max: 1 };
 
 /** Schedules `points` (position 0..1 mapped across `durationSeconds`, value
- * 0..1 remapped into `valueRange`) as a ramp onto `param`, anchoring at the
- * param's current value first so this doesn't click if a previous
- * schedule's tail hasn't finished yet. One-shot — call again (or use
- * startAutomationLoop) to repeat it.
+ * 0..1 remapped into `valueRange`) as a ramp onto `param`, anchoring at
+ * whatever the scheduled curve actually reaches by the start time first so
+ * this doesn't click if a previous schedule's tail hasn't finished yet.
+ * One-shot — call again (or use startAutomationLoop) to repeat it.
  *
  * `atTime` lets a lookahead scheduler (anything that computes a future
  * note-start time itself, rather than firing right when it's called) pin
  * the curve's start there instead of "now" — defaults to
  * `audioContext.currentTime` for immediate scheduling, the original
- * behavior. The anchor is still read from `param.value` at *call* time,
- * not at `atTime`: Web Audio has no way to query a param's future computed
- * value ahead of time, so if another automation is still ramping between
- * call time and `atTime`, the anchor can be slightly off — acceptable for
- * a lookahead window of a couple hundred ms, not for scheduling far into
- * the future. */
+ * behavior. The anchor uses `cancelAndHoldAtTime`, not a synchronous
+ * `param.value` read: for a future `atTime`, `.value` reflects whatever
+ * the param was *before* any still-pending scheduled automation has
+ * actually played (real audio time hasn't reached it yet), not what that
+ * automation will have produced by `atTime` -- anchoring on that stale
+ * snapshot plants a wrong `setValueAtTime`, silently overriding the real
+ * curve with a hard jump instead of the smooth handoff this is meant to
+ * guarantee. `cancelAndHoldAtTime` computes the correct in-progress value
+ * from the scheduled curve itself. */
 export function scheduleAutomation(
   param: AudioParam,
   points: AutomationPoint[],
@@ -46,12 +49,7 @@ export function scheduleAutomation(
   atTime?: number,
 ): void {
   const startTime = atTime ?? audioContext.currentTime;
-  param.cancelScheduledValues(startTime);
-  // Anchor at whatever the param actually is right now, not an assumed
-  // start value — if a previous cycle's tail hasn't fully settled, or
-  // scheduling just lands a few ms early, forcing a hard jump would cause
-  // an audible click even though the curve's own shape is well-defined.
-  param.setValueAtTime(param.value, startTime);
+  param.cancelAndHoldAtTime(startTime);
   const { min, max } = valueRange;
   for (const point of points) {
     const mapped = min + point.value * (max - min);
