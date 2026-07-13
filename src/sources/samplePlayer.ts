@@ -98,6 +98,30 @@ export class SamplePlayer implements NoteTarget {
       velocity / 127,
       startTime,
     );
+    // start()'s duration argument above cuts the raw buffer off at
+    // startTime + durationSeconds with no fade of its own -- fine when a
+    // sample's own content already tapers to silence there, but once a
+    // trimmed range can end anywhere in the waveform, that's an abrupt
+    // truncation mid-signal (a pop), and noteOff's own release can't save
+    // it: oneShot voices never call noteOff at all (see below), and a
+    // gated voice's release is timed by the *step's* gate, not the
+    // sample's own trimmed length, so it can easily still be scheduled
+    // for *after* the buffer has already hard-stopped. Scheduling this
+    // release now guarantees a fade completes by the buffer's actual end
+    // regardless of gate; if noteOff later calls its own release first
+    // (a shorter gate than the trimmed range), triggerRelease's
+    // cancelAndHoldAtTime cleanly overrides these scheduled points with
+    // its own, same as any other re-trigger.
+    if (!this.params.loop) {
+      const releaseSeconds = Math.max(this.params.releaseMs, 0) / 1000;
+      const naturalEndTime = startTime + durationSeconds;
+      triggerRelease(
+        gain.gain,
+        this.audioContext,
+        this.params,
+        Math.max(startTime, naturalEndTime - releaseSeconds),
+      );
+    }
     if (this.params.oneShot) {
       source.onended = () => {
         source.disconnect();
