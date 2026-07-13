@@ -2,7 +2,12 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
-    "declaration": false
+    "declaration": false,
+    // Not "." -- demo files import straight from ../src, so the common
+    // source directory this program actually needs is the repo root, not
+    // demo/ alone (and not the parent config's inherited "src", which
+    // doesn't cover demo/ itself).
+    "rootDir": ".."
   },
   "include": ["."],
   "exclude": ["vite.config.ts"]
