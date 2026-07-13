@@ -25,27 +25,39 @@ const DEFAULT_VALUE_RANGE: AutomationValueRange = { min: 0, max: 1 };
  * 0..1 remapped into `valueRange`) as a ramp onto `param`, anchoring at the
  * param's current value first so this doesn't click if a previous
  * schedule's tail hasn't finished yet. One-shot — call again (or use
- * startAutomationLoop) to repeat it. */
+ * startAutomationLoop) to repeat it.
+ *
+ * `atTime` lets a lookahead scheduler (anything that computes a future
+ * note-start time itself, rather than firing right when it's called) pin
+ * the curve's start there instead of "now" — defaults to
+ * `audioContext.currentTime` for immediate scheduling, the original
+ * behavior. The anchor is still read from `param.value` at *call* time,
+ * not at `atTime`: Web Audio has no way to query a param's future computed
+ * value ahead of time, so if another automation is still ramping between
+ * call time and `atTime`, the anchor can be slightly off — acceptable for
+ * a lookahead window of a couple hundred ms, not for scheduling far into
+ * the future. */
 export function scheduleAutomation(
   param: AudioParam,
   points: AutomationPoint[],
   audioContext: BaseAudioContext,
   durationSeconds: number,
   valueRange: AutomationValueRange = DEFAULT_VALUE_RANGE,
+  atTime?: number,
 ): void {
-  const now = audioContext.currentTime;
-  param.cancelScheduledValues(now);
+  const startTime = atTime ?? audioContext.currentTime;
+  param.cancelScheduledValues(startTime);
   // Anchor at whatever the param actually is right now, not an assumed
   // start value — if a previous cycle's tail hasn't fully settled, or
   // scheduling just lands a few ms early, forcing a hard jump would cause
   // an audible click even though the curve's own shape is well-defined.
-  param.setValueAtTime(param.value, now);
+  param.setValueAtTime(param.value, startTime);
   const { min, max } = valueRange;
   for (const point of points) {
     const mapped = min + point.value * (max - min);
     param.linearRampToValueAtTime(
       mapped,
-      now + point.position * durationSeconds,
+      startTime + point.position * durationSeconds,
     );
   }
 }

@@ -78,11 +78,18 @@ export class OscillatorSynth implements NoteTarget {
       atTime,
     );
     voice.osc.stop(endTime);
+    // Deletion is deferred to onended (real audio-stop time), not done here
+    // synchronously -- a lookahead scheduler calls noteOn then noteOff back
+    // to back well before the note is actually audible, so deleting here
+    // would make `voices` (and therefore setParams' live-voice waveform/
+    // detune update above) never see a voice that's still actually
+    // sounding. The identity check guards against a same-note retrigger
+    // that's already replaced this map entry by the time onended fires.
     voice.osc.onended = () => {
       voice.osc.disconnect();
       voice.gain.disconnect();
+      if (this.voices.get(note) === voice) this.voices.delete(note);
     };
-    this.voices.delete(note);
   }
 
   get currentTime(): number {

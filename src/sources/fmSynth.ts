@@ -107,13 +107,17 @@ export class FmSynth implements NoteTarget {
     );
     voice.carrier.stop(endTime);
     voice.modulator.stop(endTime);
+    // Deletion is deferred to onended (real audio-stop time) -- see the
+    // matching comment in oscillatorSynth.ts's noteOff for why deleting
+    // here synchronously would make setParams' live-voice update loop
+    // above never reach a voice that's still actually sounding.
     voice.carrier.onended = () => {
       voice.carrier.disconnect();
       voice.modulator.disconnect();
       voice.modGain.disconnect();
       voice.gain.disconnect();
+      if (this.voices.get(note) === voice) this.voices.delete(note);
     };
-    this.voices.delete(note);
   }
 
   get currentTime(): number {
