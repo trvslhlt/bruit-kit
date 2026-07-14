@@ -1,6 +1,12 @@
 import { type DryWetWrapper, createDryWet } from "./dryWet";
 
-export type RingModulationWaveform = "sine" | "square" | "sawtooth";
+// Every OscillatorType the carrier can actually be, short of "custom"
+// (which needs a PeriodicWave, not a simple type string).
+export type RingModulationWaveform =
+  | "sine"
+  | "square"
+  | "sawtooth"
+  | "triangle";
 
 export interface RingModulationEffectParams {
   frequency: number;

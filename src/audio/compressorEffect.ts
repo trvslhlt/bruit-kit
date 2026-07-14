@@ -2,6 +2,10 @@ import { type DryWetWrapper, createDryWet } from "./dryWet";
 
 export interface CompressorEffectParams {
   threshold: number;
+  /** dB range above the threshold over which compression ramps in
+   * smoothly rather than kicking in abruptly right at the threshold --
+   * DynamicsCompressorNode's own `knee` param, previously not exposed. */
+  knee: number;
   ratio: number;
   attack: number;
   release: number;
@@ -15,6 +19,7 @@ export class CompressorEffect {
    * see FilterEffect.frequencyParam's doc comment for why this coexists
    * safely with setParams. */
   readonly thresholdParam: AudioParam;
+  readonly kneeParam: AudioParam;
   readonly ratioParam: AudioParam;
   readonly attackParam: AudioParam;
   readonly releaseParam: AudioParam;
@@ -24,10 +29,12 @@ export class CompressorEffect {
   constructor(audioContext: AudioContext) {
     this.compressorNode = audioContext.createDynamicsCompressor();
     this.compressorNode.threshold.value = -24;
+    this.compressorNode.knee.value = 30;
     this.compressorNode.ratio.value = 12;
     this.compressorNode.attack.value = 0.003;
     this.compressorNode.release.value = 0.25;
     this.thresholdParam = this.compressorNode.threshold;
+    this.kneeParam = this.compressorNode.knee;
     this.ratioParam = this.compressorNode.ratio;
     this.attackParam = this.compressorNode.attack;
     this.releaseParam = this.compressorNode.release;
@@ -45,6 +52,7 @@ export class CompressorEffect {
   setParams(params: Partial<CompressorEffectParams>): void {
     if (params.threshold !== undefined)
       this.compressorNode.threshold.value = params.threshold;
+    if (params.knee !== undefined) this.compressorNode.knee.value = params.knee;
     if (params.ratio !== undefined)
       this.compressorNode.ratio.value = params.ratio;
     if (params.attack !== undefined)

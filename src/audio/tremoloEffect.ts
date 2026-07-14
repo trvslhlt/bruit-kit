@@ -1,6 +1,8 @@
 import { type DryWetWrapper, createDryWet } from "./dryWet";
 
-export type TremoloWaveform = "sine" | "square";
+// Every OscillatorType the LFO can actually be, short of "custom" (which
+// needs a PeriodicWave, not a simple type string).
+export type TremoloWaveform = "sine" | "square" | "sawtooth" | "triangle";
 
 export interface TremoloEffectParams {
   rate: number;

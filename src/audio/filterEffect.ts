@@ -4,6 +4,11 @@ export interface FilterEffectParams {
   type: BiquadFilterType;
   frequency: number;
   q: number;
+  /** dB boost/cut -- only audible for "lowshelf"/"highshelf"/"peaking"
+   * (BiquadFilterNode ignores it for every other type). Previously not
+   * exposed at all, which left those three filter types permanently inert
+   * (gain defaulted to 0 = no boost/cut ever applied). */
+  gain: number;
   wet: number;
 }
 
@@ -15,6 +20,7 @@ export class FilterEffect {
    * setParams' own `.value =` writes without conflict. */
   readonly frequencyParam: AudioParam;
   readonly qParam: AudioParam;
+  readonly gainParam: AudioParam;
   private filterNode: BiquadFilterNode;
   private dryWet: DryWetWrapper;
 
@@ -25,6 +31,7 @@ export class FilterEffect {
     this.filterNode.Q.value = 0.7;
     this.frequencyParam = this.filterNode.frequency;
     this.qParam = this.filterNode.Q;
+    this.gainParam = this.filterNode.gain;
 
     this.dryWet = createDryWet(
       audioContext,
@@ -41,6 +48,7 @@ export class FilterEffect {
     if (params.frequency !== undefined)
       this.filterNode.frequency.value = params.frequency;
     if (params.q !== undefined) this.filterNode.Q.value = params.q;
+    if (params.gain !== undefined) this.filterNode.gain.value = params.gain;
     if (params.wet !== undefined) this.dryWet.setWet(params.wet);
   }
 }
