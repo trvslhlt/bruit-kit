@@ -11,7 +11,7 @@ export interface EffectNode {
  * on-screen keyboard as the signal source, routed through `effect`, routed
  * to output. Each demo still builds its own effect instance (constructors
  * differ) and param panel — only this part is identical enough across all
- * eight to be worth sharing. */
+ * of them to be worth sharing. */
 export function wireEffectDemo(
   audioContext: AudioContext,
   keyboardContainer: HTMLElement,

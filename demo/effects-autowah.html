@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoWahEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>AutoWahEffect</h1>
+    <p class="demo-note">
+      A bandpass filter's center frequency is pushed around by the input's
+      own loudness (rectify -> smooth -> scale -> filter.frequency) instead
+      of an LFO -- play louder or softer to hear the sweep follow you.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-autowah.ts"></script>
+  </body>
+</html>

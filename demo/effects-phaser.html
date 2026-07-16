@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PhaserEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>PhaserEffect</h1>
+    <p class="demo-note">
+      Four cascaded allpass filters swept in unison by one LFO; summing the
+      shifted signal back with the dry path creates moving notches, rather
+      than sweeping a single filter's cutoff the way FilterEffect does.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-phaser.ts"></script>
+  </body>
+</html>

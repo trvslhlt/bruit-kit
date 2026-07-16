@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BitcrusherEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>BitcrusherEffect</h1>
+    <p class="demo-note">
+      A WaveShaperNode curve quantizes amplitude into 2^bits steps -- the
+      "stair-step" half of a classic bitcrusher. Sample-rate reduction
+      (the other half) needs an AudioWorklet and isn't included here; see
+      the class doc comment.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-bitcrusher.ts"></script>
+  </body>
+</html>
