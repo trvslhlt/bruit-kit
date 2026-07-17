@@ -14,6 +14,8 @@ export * from "./flangerEffect";
 export * from "./phaserEffect";
 export * from "./autoWahEffect";
 export * from "./bitcrusherEffect";
+export * from "./weightedRandom";
+export * from "./sourceSwitcher";
 export * from "./recorder";
 export * from "./automation";
 export * from "./modulation/types";

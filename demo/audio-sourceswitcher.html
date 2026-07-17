@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SourceSwitcher demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>SourceSwitcher</h1>
+    <p class="demo-note">
+      Two continuously-running oscillators (a low sine, a higher square)
+      feed into one SourceSwitcher, which randomly picks one to be audible
+      at a time and equal-power crossfades between them. Neither
+      oscillator ever starts or stops -- only which one you can hear
+      changes.
+    </p>
+    <div id="unlock"></div>
+    <p id="status" class="demo-note">Active source: —</p>
+    <div id="params"></div>
+    <script type="module" src="/audio-sourceswitcher.ts"></script>
+  </body>
+</html>
