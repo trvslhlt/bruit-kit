@@ -1,7 +1,7 @@
 import type { NoteTarget } from "../midi/noteTarget";
 import {
   type AdsrParams,
-  type AttackSchedule,
+  type EnvelopeSchedule,
   triggerAttack,
   triggerRelease,
   triggerStealFade,
@@ -16,7 +16,7 @@ export interface NoiseGeneratorParams extends AdsrParams {
 interface Voice {
   source: AudioBufferSourceNode;
   gain: GainNode;
-  attack: AttackSchedule;
+  envelope: EnvelopeSchedule;
 }
 
 const DEFAULT_PARAMS: NoiseGeneratorParams = {
@@ -118,24 +118,24 @@ export class NoiseGenerator implements NoteTarget {
     source.connect(gain).connect(this.output);
     source.start(startTime);
 
-    const attack = triggerAttack(
+    const envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
       startTime,
     );
-    this.voices.set(note, { source, gain, attack });
+    this.voices.set(note, { source, gain, envelope });
   }
 
   noteOff(note: number, time?: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
     const atTime = time ?? this.audioContext.currentTime;
-    const endTime = triggerRelease(
+    const { endTime } = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       atTime,
     );
     voice.source.stop(endTime);
@@ -167,10 +167,10 @@ export class NoiseGenerator implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    const endTime = triggerStealFade(
+    const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       time,
     );
     voice.source.stop(endTime);

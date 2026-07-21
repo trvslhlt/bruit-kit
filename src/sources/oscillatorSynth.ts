@@ -1,7 +1,7 @@
 import type { NoteTarget } from "../midi/noteTarget";
 import {
   type AdsrParams,
-  type AttackSchedule,
+  type EnvelopeSchedule,
   triggerAttack,
   triggerRelease,
   triggerStealFade,
@@ -20,7 +20,7 @@ export interface OscillatorSynthParams extends AdsrParams {
 }
 
 /** Tracks the portamento glide currently (or most recently) scheduled on a
- * voice's frequency param -- needed for the same reason AttackSchedule is
+ * voice's frequency param -- needed for the same reason EnvelopeSchedule is
  * needed for gain (see envelope.ts's triggerRelease doc comment): asking
  * cancelAndHoldAtTime for the param's current value once a prior
  * exponential ramp has already completed returns a wrong, too-low-or-high
@@ -44,7 +44,7 @@ function frequencyAt(atTime: number, glide: FrequencyGlide): number {
 interface Voice {
   osc: OscillatorNode;
   gain: GainNode;
-  attack: AttackSchedule;
+  envelope: EnvelopeSchedule;
   freqGlide: FrequencyGlide;
 }
 
@@ -140,7 +140,7 @@ export class OscillatorSynth implements NoteTarget {
     osc.connect(gain).connect(this.output);
     osc.start(startTime);
 
-    const attack = triggerAttack(
+    const envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
@@ -150,7 +150,7 @@ export class OscillatorSynth implements NoteTarget {
     this.voices.set(note, {
       osc,
       gain,
-      attack,
+      envelope,
       freqGlide: { from: freq, to: freq, startTime, endTime: startTime },
     });
   }
@@ -159,12 +159,13 @@ export class OscillatorSynth implements NoteTarget {
     const voice = this.voices.get(note);
     if (!voice) return;
     const atTime = time ?? this.audioContext.currentTime;
-    const endTime = triggerRelease(
+    const { endTime, schedule } = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       atTime,
     );
+    voice.envelope = schedule;
     voice.osc.stop(endTime);
     // Deletion is deferred to onended (real audio-stop time), not done here
     // synchronously -- a lookahead scheduler calls noteOn then noteOff back
@@ -187,10 +188,10 @@ export class OscillatorSynth implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    const endTime = triggerStealFade(
+    const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       time,
     );
     voice.osc.stop(endTime);

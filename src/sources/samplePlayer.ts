@@ -1,7 +1,7 @@
 import type { NoteTarget } from "../midi/noteTarget";
 import {
   type AdsrParams,
-  type AttackSchedule,
+  type EnvelopeSchedule,
   triggerAttack,
   triggerRelease,
   triggerStealFade,
@@ -29,7 +29,7 @@ export interface SamplePlayerParams extends AdsrParams {
 interface Voice {
   source: AudioBufferSourceNode;
   gain: GainNode;
-  attack: AttackSchedule;
+  envelope: EnvelopeSchedule;
 }
 
 const DEFAULT_PARAMS: SamplePlayerParams = {
@@ -98,7 +98,7 @@ export class SamplePlayer implements NoteTarget {
     // govern repetition instead), so it's safe to always pass one.
     source.start(startTime, offsetSeconds, durationSeconds);
 
-    const attack = triggerAttack(
+    let envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
@@ -118,16 +118,20 @@ export class SamplePlayer implements NoteTarget {
     // regardless of gate; if noteOff later calls its own release first
     // (a shorter gate than the trimmed range), triggerRelease cleanly
     // overrides these scheduled points with its own, same as any other
-    // re-trigger.
+    // re-trigger -- which is exactly why the *updated* schedule from this
+    // call has to replace `envelope` below, not just get discarded: a
+    // later noteOff's own triggerRelease needs to know this preemptive
+    // release already started, or it'll anchor on the stale pre-release
+    // value and click.
     if (!this.params.loop) {
       const releaseSeconds = Math.max(this.params.releaseMs, 0) / 1000;
       const naturalEndTime = startTime + durationSeconds;
-      triggerRelease(
+      envelope = triggerRelease(
         gain.gain,
         this.audioContext,
-        attack,
+        envelope,
         Math.max(startTime, naturalEndTime - releaseSeconds),
-      );
+      ).schedule;
     }
     if (this.params.oneShot) {
       source.onended = () => {
@@ -136,7 +140,7 @@ export class SamplePlayer implements NoteTarget {
         this.voices.delete(note);
       };
     } else {
-      this.voices.set(note, { source, gain, attack });
+      this.voices.set(note, { source, gain, envelope });
     }
   }
 
@@ -144,10 +148,10 @@ export class SamplePlayer implements NoteTarget {
     const voice = this.voices.get(note);
     if (!voice) return;
     const atTime = time ?? this.audioContext.currentTime;
-    const endTime = triggerRelease(
+    const { endTime } = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       atTime,
     );
     voice.source.stop(endTime);
@@ -187,10 +191,10 @@ export class SamplePlayer implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    const endTime = triggerStealFade(
+    const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
-      voice.attack,
+      voice.envelope,
       time,
     );
     voice.source.stop(endTime);
