@@ -4,6 +4,7 @@ import {
   type AttackSchedule,
   triggerAttack,
   triggerRelease,
+  triggerStealFade,
 } from "./envelope";
 import { midiToFrequency } from "./pitch";
 
@@ -148,7 +149,13 @@ export class OscillatorSynth implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    voice.osc.stop(time);
+    const endTime = triggerStealFade(
+      voice.gain.gain,
+      this.audioContext,
+      voice.attack,
+      time,
+    );
+    voice.osc.stop(endTime);
     voice.osc.onended = () => {
       voice.osc.disconnect();
       voice.gain.disconnect();

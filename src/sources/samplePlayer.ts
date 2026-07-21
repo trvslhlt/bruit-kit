@@ -4,6 +4,7 @@ import {
   type AttackSchedule,
   triggerAttack,
   triggerRelease,
+  triggerStealFade,
 } from "./envelope";
 import { semitoneRatio } from "./pitch";
 
@@ -186,7 +187,13 @@ export class SamplePlayer implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    voice.source.stop(time);
+    const endTime = triggerStealFade(
+      voice.gain.gain,
+      this.audioContext,
+      voice.attack,
+      time,
+    );
+    voice.source.stop(endTime);
     voice.source.onended = () => {
       voice.source.disconnect();
       voice.gain.disconnect();

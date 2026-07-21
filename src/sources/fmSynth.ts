@@ -4,6 +4,7 @@ import {
   type AttackSchedule,
   triggerAttack,
   triggerRelease,
+  triggerStealFade,
 } from "./envelope";
 import { midiToFrequency } from "./pitch";
 
@@ -137,8 +138,14 @@ export class FmSynth implements NoteTarget {
   private stopVoice(note: number, time: number): void {
     const voice = this.voices.get(note);
     if (!voice) return;
-    voice.carrier.stop(time);
-    voice.modulator.stop(time);
+    const endTime = triggerStealFade(
+      voice.gain.gain,
+      this.audioContext,
+      voice.attack,
+      time,
+    );
+    voice.carrier.stop(endTime);
+    voice.modulator.stop(endTime);
     voice.carrier.onended = () => {
       voice.carrier.disconnect();
       voice.modulator.disconnect();

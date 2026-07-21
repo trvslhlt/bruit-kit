@@ -110,3 +110,29 @@ export function triggerRelease(
   gainParam.linearRampToValueAtTime(0, endTime);
   return endTime;
 }
+
+/** A same-note retrigger (rapid repeated noteOn) steals the previous voice
+ * by stopping it outright -- but that voice's gain is almost always still
+ * well above 0 at that point (it's nowhere near its own user-configured
+ * release), so a hard stop with no fade at all is an instant truncation,
+ * audible as a click on every rapid repeat. This is a fixed, short
+ * declick fade instead of the user's own releaseMs: long enough to avoid
+ * a step, short enough not to meaningfully overlap the new voice starting
+ * in its place. Reuses triggerRelease's anchor math (via the same
+ * AttackSchedule) rather than duplicating it, just with the release
+ * length overridden. */
+const STEAL_FADE_MS = 5;
+
+export function triggerStealFade(
+  gainParam: AudioParam,
+  audioContext: BaseAudioContext,
+  attack: AttackSchedule,
+  atTime: number = audioContext.currentTime,
+): number {
+  return triggerRelease(
+    gainParam,
+    audioContext,
+    { ...attack, adsr: { ...attack.adsr, releaseMs: STEAL_FADE_MS } },
+    atTime,
+  );
+}
