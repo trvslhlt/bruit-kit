@@ -127,7 +127,19 @@ export class OscillatorSynth implements NoteTarget {
     // real-now would truncate that release mid-flight, audible as a click;
     // stopping it at startTime is a no-op whenever the two don't actually
     // overlap (the common case), and a clean handoff when they do.
-    this.stopVoice(note, startTime);
+    //
+    // stopVoice returns when it's actually safe for the new voice to start
+    // -- if it stole a still-sounding voice, that's after its declick fade
+    // finishes, not immediately at startTime. Starting a fresh oscillator
+    // (always phase 0) while the old one (at some arbitrary phase) is still
+    // audibly overlapping it can briefly cancel if their phases land
+    // roughly opposite, an audible dip/glitch confirmed by directly
+    // measuring the summed output's RMS around a retrigger -- infrequent
+    // and timing-dependent (only bad phase alignments produce it), matching
+    // reports of an occasional, hard-to-reproduce pop on rapid retriggers.
+    // A few ms of silence between the old voice ending and the new one
+    // starting is imperceptible as lag but guarantees they never overlap.
+    const voiceStartTime = this.stopVoice(note, startTime);
 
     const osc = this.audioContext.createOscillator();
     osc.type = this.params.waveform;
@@ -138,20 +150,25 @@ export class OscillatorSynth implements NoteTarget {
     const gain = this.audioContext.createGain();
     gain.gain.value = 0;
     osc.connect(gain).connect(this.output);
-    osc.start(startTime);
+    osc.start(voiceStartTime);
 
     const envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
-      startTime,
+      voiceStartTime,
     );
     this.voices.set(note, {
       osc,
       gain,
       envelope,
-      freqGlide: { from: freq, to: freq, startTime, endTime: startTime },
+      freqGlide: {
+        from: freq,
+        to: freq,
+        startTime: voiceStartTime,
+        endTime: voiceStartTime,
+      },
     });
   }
 
@@ -185,9 +202,12 @@ export class OscillatorSynth implements NoteTarget {
     return this.audioContext.currentTime;
   }
 
-  private stopVoice(note: number, time: number): void {
+  /** Returns the time it's safe for a new voice to start: `time` unchanged
+   * if there was nothing to steal, or the stolen voice's declick-fade
+   * end time otherwise -- see the caller's comment for why that matters. */
+  private stopVoice(note: number, time: number): number {
     const voice = this.voices.get(note);
-    if (!voice) return;
+    if (!voice) return time;
     const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
@@ -200,5 +220,6 @@ export class OscillatorSynth implements NoteTarget {
       voice.gain.disconnect();
     };
     this.voices.delete(note);
+    return endTime;
   }
 }

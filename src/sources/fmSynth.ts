@@ -72,8 +72,12 @@ export class FmSynth implements NoteTarget {
     // See the matching comment in oscillatorSynth.ts's noteOn -- stopping
     // a stale same-note voice at real "now" instead of this note's own
     // start time truncates its already-scheduled graceful release
-    // mid-flight, audible as a click.
-    this.stopVoice(note, startTime);
+    // mid-flight, audible as a click. stopVoice's return value is when
+    // it's actually safe to start the new voice -- see its own comment
+    // for why a fresh oscillator can't just start immediately at
+    // startTime if something was stolen (phase-cancellation with the
+    // still-fading old carrier).
+    const voiceStartTime = this.stopVoice(note, startTime);
 
     const carrierFreq = midiToFrequency(note);
 
@@ -93,15 +97,15 @@ export class FmSynth implements NoteTarget {
     gain.gain.value = 0;
     carrier.connect(gain).connect(this.output);
 
-    carrier.start(startTime);
-    modulator.start(startTime);
+    carrier.start(voiceStartTime);
+    modulator.start(voiceStartTime);
 
     const envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
-      startTime,
+      voiceStartTime,
     );
     this.voices.set(note, { carrier, modulator, modGain, gain, envelope });
   }
@@ -136,9 +140,12 @@ export class FmSynth implements NoteTarget {
     return this.audioContext.currentTime;
   }
 
-  private stopVoice(note: number, time: number): void {
+  /** Returns the time it's safe for a new voice to start: `time` unchanged
+   * if there was nothing to steal, or the stolen voice's declick-fade
+   * end time otherwise -- see the caller's comment for why that matters. */
+  private stopVoice(note: number, time: number): number {
     const voice = this.voices.get(note);
-    if (!voice) return;
+    if (!voice) return time;
     const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
@@ -154,5 +161,6 @@ export class FmSynth implements NoteTarget {
       voice.gain.disconnect();
     };
     this.voices.delete(note);
+    return endTime;
   }
 }

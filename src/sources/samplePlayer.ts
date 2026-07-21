@@ -73,8 +73,13 @@ export class SamplePlayer implements NoteTarget {
     // See the matching comment in oscillatorSynth.ts's noteOn -- stopping
     // a stale same-note voice at real "now" instead of this note's own
     // start time truncates its already-scheduled graceful release
-    // mid-flight, audible as a click.
-    this.stopVoice(note, startTime);
+    // mid-flight, audible as a click. stopVoice's return value is when
+    // it's actually safe to start the new voice -- see its own comment
+    // for why a fresh source can't just start immediately at startTime if
+    // something was stolen (two overlapping copies of the same sample
+    // content, or two overlapping loop iterations, are correlated enough
+    // to cancel like out-of-phase tones would, not independent signals).
+    const voiceStartTime = this.stopVoice(note, startTime);
 
     const source = this.audioContext.createBufferSource();
     source.buffer = this.buffer;
@@ -96,14 +101,14 @@ export class SamplePlayer implements NoteTarget {
     source.connect(gain).connect(this.output);
     // A duration argument is ignored while looping (the loop points above
     // govern repetition instead), so it's safe to always pass one.
-    source.start(startTime, offsetSeconds, durationSeconds);
+    source.start(voiceStartTime, offsetSeconds, durationSeconds);
 
     let envelope = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
-      startTime,
+      voiceStartTime,
     );
     // start()'s duration argument above cuts the raw buffer off at
     // startTime + durationSeconds with no fade of its own -- fine when a
@@ -125,12 +130,12 @@ export class SamplePlayer implements NoteTarget {
     // value and click.
     if (!this.params.loop) {
       const releaseSeconds = Math.max(this.params.releaseMs, 0) / 1000;
-      const naturalEndTime = startTime + durationSeconds;
+      const naturalEndTime = voiceStartTime + durationSeconds;
       envelope = triggerRelease(
         gain.gain,
         this.audioContext,
         envelope,
-        Math.max(startTime, naturalEndTime - releaseSeconds),
+        Math.max(voiceStartTime, naturalEndTime - releaseSeconds),
       ).schedule;
     }
     if (this.params.oneShot) {
@@ -188,9 +193,12 @@ export class SamplePlayer implements NoteTarget {
     };
   }
 
-  private stopVoice(note: number, time: number): void {
+  /** Returns the time it's safe for a new voice to start: `time` unchanged
+   * if there was nothing to steal, or the stolen voice's declick-fade
+   * end time otherwise -- see the caller's comment for why that matters. */
+  private stopVoice(note: number, time: number): number {
     const voice = this.voices.get(note);
-    if (!voice) return;
+    if (!voice) return time;
     const { endTime } = triggerStealFade(
       voice.gain.gain,
       this.audioContext,
@@ -203,5 +211,6 @@ export class SamplePlayer implements NoteTarget {
       voice.gain.disconnect();
     };
     this.voices.delete(note);
+    return endTime;
   }
 }
