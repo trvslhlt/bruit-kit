@@ -19,10 +19,33 @@ export interface OscillatorSynthParams extends AdsrParams {
   portamentoMs: number;
 }
 
+/** Tracks the portamento glide currently (or most recently) scheduled on a
+ * voice's frequency param -- needed for the same reason AttackSchedule is
+ * needed for gain (see envelope.ts's triggerRelease doc comment): asking
+ * cancelAndHoldAtTime for the param's current value once a prior
+ * exponential ramp has already completed returns a wrong, too-low-or-high
+ * value in Chrome, confirmed with the same kind of minimal repro used for
+ * the gain bug. A single glide is just one exponential ramp with known
+ * endpoints, so its value at any time is simple to compute directly. */
+interface FrequencyGlide {
+  from: number;
+  to: number;
+  startTime: number;
+  endTime: number;
+}
+
+function frequencyAt(atTime: number, glide: FrequencyGlide): number {
+  if (atTime <= glide.startTime) return glide.from;
+  if (atTime >= glide.endTime) return glide.to;
+  const progress = (atTime - glide.startTime) / (glide.endTime - glide.startTime);
+  return glide.from * (glide.to / glide.from) ** progress;
+}
+
 interface Voice {
   osc: OscillatorNode;
   gain: GainNode;
   attack: AttackSchedule;
+  freqGlide: FrequencyGlide;
 }
 
 const DEFAULT_PARAMS: OscillatorSynthParams = {
@@ -75,11 +98,20 @@ export class OscillatorSynth implements NoteTarget {
     const glideSeconds = Math.max(this.params.portamentoMs, 0) / 1000;
     if (glideSeconds > 0 && this.voices.size > 0 && !this.voices.has(note)) {
       const [prevNote, voice] = [...this.voices][0];
-      voice.osc.frequency.cancelAndHoldAtTime(startTime);
+      const currentFreq = frequencyAt(startTime, voice.freqGlide);
+      const targetFreq = midiToFrequency(note);
+      voice.osc.frequency.cancelScheduledValues(startTime);
+      voice.osc.frequency.setValueAtTime(currentFreq, startTime);
       voice.osc.frequency.exponentialRampToValueAtTime(
-        midiToFrequency(note),
+        targetFreq,
         startTime + glideSeconds,
       );
+      voice.freqGlide = {
+        from: currentFreq,
+        to: targetFreq,
+        startTime,
+        endTime: startTime + glideSeconds,
+      };
       this.voices.delete(prevNote);
       this.voices.set(note, voice);
       return;
@@ -100,7 +132,8 @@ export class OscillatorSynth implements NoteTarget {
     const osc = this.audioContext.createOscillator();
     osc.type = this.params.waveform;
     osc.detune.value = this.params.detune;
-    osc.frequency.value = midiToFrequency(note);
+    const freq = midiToFrequency(note);
+    osc.frequency.value = freq;
 
     const gain = this.audioContext.createGain();
     gain.gain.value = 0;
@@ -114,7 +147,12 @@ export class OscillatorSynth implements NoteTarget {
       velocity / 127,
       startTime,
     );
-    this.voices.set(note, { osc, gain, attack });
+    this.voices.set(note, {
+      osc,
+      gain,
+      attack,
+      freqGlide: { from: freq, to: freq, startTime, endTime: startTime },
+    });
   }
 
   noteOff(note: number, time?: number): void {
