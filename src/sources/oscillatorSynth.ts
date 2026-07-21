@@ -5,6 +5,12 @@ import { midiToFrequency } from "./pitch";
 export interface OscillatorSynthParams extends AdsrParams {
   waveform: OscillatorType;
   detune: number;
+  /** Glide time (ms) between two overlapping notes. 0 = off (default
+   * polyphonic behavior: every note gets its own voice, pitch jumps
+   * instantly). Above 0, a note that arrives while another is still
+   * sounding reuses that voice and slides to the new pitch instead of
+   * starting a fresh oscillator -- see the noteOn portamento branch. */
+  portamentoMs: number;
 }
 
 interface Voice {
@@ -19,6 +25,7 @@ const DEFAULT_PARAMS: OscillatorSynthParams = {
   decayMs: 150,
   sustainLevel: 0.7,
   releaseMs: 200,
+  portamentoMs: 0,
 };
 
 /** A plain polyphonic subtractive-synth voice: one OscillatorNode per note,
@@ -45,6 +52,32 @@ export class OscillatorSynth implements NoteTarget {
 
   noteOn(note: number, velocity: number, time?: number): void {
     const startTime = time ?? this.audioContext.currentTime;
+
+    // Portamento glide: only when a *different* note is already sounding --
+    // a same-note retrigger falls through to the normal stop-and-restart
+    // path below, same as with portamento off. Reuses the existing voice's
+    // oscillator and slides it to the new pitch instead of starting a new
+    // one, and leaves its gain envelope untouched (legato phrasing doesn't
+    // re-attack). This intentionally collapses to monophonic while gliding:
+    // there is exactly one glide target, so anything else already sounding
+    // gets re-keyed onto this note rather than kept as a separate voice. A
+    // note released later that got re-keyed away (e.g. holding a chord
+    // while gliding) will find nothing under its own key in `voices` and
+    // silently no-op in noteOff, rather than resuming the glide -- there's
+    // no held-note stack here, just last-note priority.
+    const glideSeconds = Math.max(this.params.portamentoMs, 0) / 1000;
+    if (glideSeconds > 0 && this.voices.size > 0 && !this.voices.has(note)) {
+      const [prevNote, voice] = [...this.voices][0];
+      voice.osc.frequency.cancelAndHoldAtTime(startTime);
+      voice.osc.frequency.exponentialRampToValueAtTime(
+        midiToFrequency(note),
+        startTime + glideSeconds,
+      );
+      this.voices.delete(prevNote);
+      this.voices.set(note, voice);
+      return;
+    }
+
     // Cut off a stale same-note voice at *this* note's own start time, not
     // real "now" -- a lookahead scheduler calls noteOn well ahead of when a
     // note is actually audible, and since noteOff no longer deletes a

@@ -64,5 +64,14 @@ unlockAudioContext(unlockEl).then((audioContext) => {
       value: 200,
       onChange: (value) => synth.setParams({ releaseMs: value }),
     },
+    {
+      id: "portamentoMs",
+      label: "Portamento (ms)",
+      min: 0,
+      max: 1000,
+      step: 1,
+      value: 0,
+      onChange: (value) => synth.setParams({ portamentoMs: value }),
+    },
   ]);
 });

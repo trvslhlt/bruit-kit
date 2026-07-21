@@ -90,7 +90,8 @@ a {
   cursor: pointer;
 }
 
-.keyboard-key:active {
+.keyboard-key:active,
+.keyboard-key.is-pressed {
   background: #4c7dff;
   color: #fff;
 }
