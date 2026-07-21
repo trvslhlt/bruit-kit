@@ -1,5 +1,10 @@
 import type { NoteTarget } from "../midi/noteTarget";
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
+import {
+  type AdsrParams,
+  type AttackSchedule,
+  triggerAttack,
+  triggerRelease,
+} from "./envelope";
 import { semitoneRatio } from "./pitch";
 
 export interface SamplePlayerParams extends AdsrParams {
@@ -23,6 +28,7 @@ export interface SamplePlayerParams extends AdsrParams {
 interface Voice {
   source: AudioBufferSourceNode;
   gain: GainNode;
+  attack: AttackSchedule;
 }
 
 const DEFAULT_PARAMS: SamplePlayerParams = {
@@ -91,7 +97,7 @@ export class SamplePlayer implements NoteTarget {
     // govern repetition instead), so it's safe to always pass one.
     source.start(startTime, offsetSeconds, durationSeconds);
 
-    triggerAttack(
+    const attack = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
@@ -109,16 +115,16 @@ export class SamplePlayer implements NoteTarget {
     // for *after* the buffer has already hard-stopped. Scheduling this
     // release now guarantees a fade completes by the buffer's actual end
     // regardless of gate; if noteOff later calls its own release first
-    // (a shorter gate than the trimmed range), triggerRelease's
-    // cancelAndHoldAtTime cleanly overrides these scheduled points with
-    // its own, same as any other re-trigger.
+    // (a shorter gate than the trimmed range), triggerRelease cleanly
+    // overrides these scheduled points with its own, same as any other
+    // re-trigger.
     if (!this.params.loop) {
       const releaseSeconds = Math.max(this.params.releaseMs, 0) / 1000;
       const naturalEndTime = startTime + durationSeconds;
       triggerRelease(
         gain.gain,
         this.audioContext,
-        this.params,
+        attack,
         Math.max(startTime, naturalEndTime - releaseSeconds),
       );
     }
@@ -129,7 +135,7 @@ export class SamplePlayer implements NoteTarget {
         this.voices.delete(note);
       };
     } else {
-      this.voices.set(note, { source, gain });
+      this.voices.set(note, { source, gain, attack });
     }
   }
 
@@ -140,7 +146,7 @@ export class SamplePlayer implements NoteTarget {
     const endTime = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      this.params,
+      voice.attack,
       atTime,
     );
     voice.source.stop(endTime);

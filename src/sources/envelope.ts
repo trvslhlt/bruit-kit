@@ -12,6 +12,17 @@ export interface AdsrParams {
   releaseMs: number;
 }
 
+/** Everything triggerRelease needs to work out where the attack/decay
+ * curve actually is when release fires -- see triggerRelease's own
+ * comment for why it has to compute this itself rather than asking the
+ * AudioParam. Returned by triggerAttack; the caller holds onto it (e.g. on
+ * its Voice object) until noteOff. */
+export interface AttackSchedule {
+  startTime: number;
+  peak: number;
+  adsr: AdsrParams;
+}
+
 /** Ramps `gainParam` from its current value up to `peak` over the attack,
  * then down to `peak * sustainLevel` over the decay, starting at `atTime`
  * (defaults to "now") rather than always the moment this is called — a
@@ -25,43 +36,76 @@ export function triggerAttack(
   adsr: AdsrParams,
   peak = 1,
   atTime: number = audioContext.currentTime,
-): void {
+): AttackSchedule {
   const attackSeconds = Math.max(adsr.attackMs, 0) / 1000;
   const decaySeconds = Math.max(adsr.decayMs, 0) / 1000;
-  // cancelAndHoldAtTime, not cancelScheduledValues + setValueAtTime(value):
-  // when atTime is in the future (a lookahead scheduler calling this ahead
-  // of when the note is actually audible, as every caller in this repo
-  // does), gainParam.value is a synchronous *now* read -- it reflects
-  // whatever the param was before any previously-scheduled ramp has
-  // actually played, not what that ramp will have reached by atTime.
-  // Anchoring on that stale value plants a wrong setValueAtTime, silently
-  // overriding the real scheduled curve with a hard jump. cancelAndHold
-  // computes the correct in-progress value from the scheduled curve
-  // itself, with no synchronous read involved.
+  // cancelAndHoldAtTime is safe to use here (unlike in triggerRelease,
+  // below) because this always runs on a brand new GainNode whose value
+  // was just set synchronously to 0 -- there's no prior ramp history for
+  // it to mis-track.
   gainParam.cancelAndHoldAtTime(atTime);
   gainParam.linearRampToValueAtTime(peak, atTime + attackSeconds);
   gainParam.linearRampToValueAtTime(
     peak * adsr.sustainLevel,
     atTime + attackSeconds + decaySeconds,
   );
+  return { startTime: atTime, peak, adsr };
 }
 
-/** Ramps `gainParam` from its current value down to 0 over the release,
- * starting at `atTime` (defaults to "now"). Returns the absolute
- * AudioContext time the ramp finishes, so the caller knows when it's safe
- * to stop and disconnect the underlying source node. */
+/** Ramps `gainParam` down to 0 over the release, anchored at wherever the
+ * attack/decay curve from `attack` (triggerAttack's return value) actually
+ * is at `atTime`. Returns the absolute AudioContext time the ramp
+ * finishes, so the caller knows when it's safe to stop and disconnect the
+ * underlying source node.
+ *
+ * The anchor value is computed here in plain arithmetic from `attack`'s
+ * known parameters, rather than asked of the AudioParam itself, because
+ * neither of the two obvious ways to ask it are reliable for every atTime
+ * a caller in this repo actually uses (from "live, basically now" up to
+ * midiPlayer.ts's 2-second lookahead):
+ *  - A synchronous gainParam.value read reflects "right now", not what a
+ *    scheduled curve will have reached by a *future* atTime -- reads the
+ *    pre-attack baseline instead of the sustained peak, planting a click.
+ *  - cancelAndHoldAtTime is supposed to solve exactly that by computing
+ *    the curve's true value at a future time, and is what this function
+ *    used to use -- but it returns a wrong, too-low value in Chrome once
+ *    *two or more* chained ramp segments (the attack ramp, then the decay
+ *    ramp) have already fully completed by its own query time, which is
+ *    just the ordinary case of releasing a note sometime after it's
+ *    settled into sustain. Confirmed with a minimal ConstantSourceNode +
+ *    GainNode repro with no synth code involved at all, so it's a real
+ *    engine bug, not a scheduling mistake here. Since this envelope is
+ *    only ever two linear ramps, its value at any atTime is simple to
+ *    compute directly, which sidesteps the browser's curve-tracking
+ *    (and this bug) entirely instead of working around it. */
 export function triggerRelease(
   gainParam: AudioParam,
   audioContext: BaseAudioContext,
-  adsr: AdsrParams,
+  attack: AttackSchedule,
   atTime: number = audioContext.currentTime,
 ): number {
+  const { startTime, peak, adsr } = attack;
+  const attackSeconds = Math.max(adsr.attackMs, 0) / 1000;
+  const decaySeconds = Math.max(adsr.decayMs, 0) / 1000;
+  const attackEndTime = startTime + attackSeconds;
+  const decayEndTime = attackEndTime + decaySeconds;
+  const sustainValue = peak * adsr.sustainLevel;
+
+  let anchorValue: number;
+  if (atTime < startTime) {
+    anchorValue = 0;
+  } else if (atTime < attackEndTime) {
+    anchorValue = peak * ((atTime - startTime) / attackSeconds);
+  } else if (atTime < decayEndTime) {
+    const decayProgress = (atTime - attackEndTime) / decaySeconds;
+    anchorValue = peak + (sustainValue - peak) * decayProgress;
+  } else {
+    anchorValue = sustainValue;
+  }
+
+  gainParam.cancelScheduledValues(atTime);
+  gainParam.setValueAtTime(anchorValue, atTime);
   const releaseSeconds = Math.max(adsr.releaseMs, 0) / 1000;
-  // See the matching comment in triggerAttack -- this used to anchor on a
-  // synchronous gainParam.value read, which for a future atTime reads the
-  // pre-attack baseline (0) instead of the sustained peak the release
-  // should actually start from, planting a click at the release boundary.
-  gainParam.cancelAndHoldAtTime(atTime);
   const endTime = atTime + releaseSeconds;
   gainParam.linearRampToValueAtTime(0, endTime);
   return endTime;

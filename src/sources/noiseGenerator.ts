@@ -1,5 +1,10 @@
 import type { NoteTarget } from "../midi/noteTarget";
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
+import {
+  type AdsrParams,
+  type AttackSchedule,
+  triggerAttack,
+  triggerRelease,
+} from "./envelope";
 
 export type NoiseType = "white" | "pink" | "brown";
 
@@ -10,6 +15,7 @@ export interface NoiseGeneratorParams extends AdsrParams {
 interface Voice {
   source: AudioBufferSourceNode;
   gain: GainNode;
+  attack: AttackSchedule;
 }
 
 const DEFAULT_PARAMS: NoiseGeneratorParams = {
@@ -111,14 +117,14 @@ export class NoiseGenerator implements NoteTarget {
     source.connect(gain).connect(this.output);
     source.start(startTime);
 
-    triggerAttack(
+    const attack = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
       startTime,
     );
-    this.voices.set(note, { source, gain });
+    this.voices.set(note, { source, gain, attack });
   }
 
   noteOff(note: number, time?: number): void {
@@ -128,7 +134,7 @@ export class NoiseGenerator implements NoteTarget {
     const endTime = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      this.params,
+      voice.attack,
       atTime,
     );
     voice.source.stop(endTime);

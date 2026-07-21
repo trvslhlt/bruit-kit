@@ -1,5 +1,10 @@
 import type { NoteTarget } from "../midi/noteTarget";
-import { type AdsrParams, triggerAttack, triggerRelease } from "./envelope";
+import {
+  type AdsrParams,
+  type AttackSchedule,
+  triggerAttack,
+  triggerRelease,
+} from "./envelope";
 import { midiToFrequency } from "./pitch";
 
 export interface OscillatorSynthParams extends AdsrParams {
@@ -16,6 +21,7 @@ export interface OscillatorSynthParams extends AdsrParams {
 interface Voice {
   osc: OscillatorNode;
   gain: GainNode;
+  attack: AttackSchedule;
 }
 
 const DEFAULT_PARAMS: OscillatorSynthParams = {
@@ -100,14 +106,14 @@ export class OscillatorSynth implements NoteTarget {
     osc.connect(gain).connect(this.output);
     osc.start(startTime);
 
-    triggerAttack(
+    const attack = triggerAttack(
       gain.gain,
       this.audioContext,
       this.params,
       velocity / 127,
       startTime,
     );
-    this.voices.set(note, { osc, gain });
+    this.voices.set(note, { osc, gain, attack });
   }
 
   noteOff(note: number, time?: number): void {
@@ -117,7 +123,7 @@ export class OscillatorSynth implements NoteTarget {
     const endTime = triggerRelease(
       voice.gain.gain,
       this.audioContext,
-      this.params,
+      voice.attack,
       atTime,
     );
     voice.osc.stop(endTime);
