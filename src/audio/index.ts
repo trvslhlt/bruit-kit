@@ -2,6 +2,7 @@ export * from "./dryWet";
 export * from "./chainEffects";
 export * from "./send";
 export * from "./filterEffect";
+export * from "./gainEffect";
 export * from "./delayEffect";
 export * from "./distortionEffect";
 export * from "./reverbEffect";
