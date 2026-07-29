@@ -26,10 +26,11 @@
       "types": "./dist/sources/index.d.ts",
       "import": "./dist/sources/index.js"
     },
-    "./sources/granular-processor.js": "./dist/sources/granular-processor.js"
+    "./sources/granular-processor.js": "./dist/sources/granular-processor.js",
+    "./audio/pitch-shift-processor.js": "./dist/audio/pitch-shift-processor.js"
   },
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/ && mkdir -p dist/sources && cp src/sources/granular-processor.js dist/sources/",
+    "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/ && mkdir -p dist/sources && cp src/sources/granular-processor.js dist/sources/ && mkdir -p dist/audio && cp src/audio/pitch-shift-processor.js dist/audio/",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "tsc --noEmit",
