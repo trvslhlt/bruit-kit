@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoldbackDistortionEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>FoldbackDistortionEffect</h1>
+    <p class="demo-note">
+      Past &plusmn;threshold the signal reflects repeatedly instead of
+      clamping, for a denser, glitchier, more metallic texture that changes
+      character (not just gets harder) as level rises.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-foldback.ts"></script>
+  </body>
+</html>

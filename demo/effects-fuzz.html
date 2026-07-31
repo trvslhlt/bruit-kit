@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FuzzEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>FuzzEffect</h1>
+    <p class="demo-note">
+      Exponential-saturation curve -- reaches full clipping much faster
+      than a tanh curve at the same drive, for a fizzy, compressed,
+      near-square-wave fuzz-pedal character.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-fuzz.ts"></script>
+  </body>
+</html>

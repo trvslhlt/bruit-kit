@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SampleRateReducerEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>SampleRateReducerEffect</h1>
+    <p class="demo-note">
+      True sample-rate reduction (a zero-order hold) via an
+      AudioWorkletProcessor -- the aliased, gritty "lo-fi" half of a
+      classic bitcrusher that BitcrusherEffect's amplitude-quantization
+      curve can't reach.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-sampleratereducer.ts"></script>
+  </body>
+</html>
