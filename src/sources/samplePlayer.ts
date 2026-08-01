@@ -67,7 +67,19 @@ export class SamplePlayer implements NoteTarget {
     this.params = { ...this.params, ...params };
   }
 
-  noteOn(note: number, velocity: number, time?: number): void {
+  /** `startFraction` (0..1 of the buffer's own duration, clamped into
+   * whatever rangeStart/rangeEnd is currently set) overrides just this
+   * one voice's start position without touching the shared rangeStart
+   * param -- for a caller scanning through the buffer across successive
+   * hits (see grid-sequencer's RowConfig.continuePlayback) rather than
+   * always restarting from rangeStart. Omitted, every hit starts at
+   * rangeStart as before. */
+  noteOn(
+    note: number,
+    velocity: number,
+    time?: number,
+    startFraction?: number,
+  ): void {
     if (!this.buffer) return;
     const startTime = time ?? this.audioContext.currentTime;
     // See the matching comment in oscillatorSynth.ts's noteOn -- stopping
@@ -90,7 +102,10 @@ export class SamplePlayer implements NoteTarget {
     // the buffer's own native seconds regardless of playbackRate -- the
     // Web Audio spec defines them against the buffer's own timeline, not
     // wall-clock playback time.
-    const { offsetSeconds, durationSeconds } = this.rangeSeconds(this.buffer);
+    const { offsetSeconds, durationSeconds } = this.rangeSeconds(
+      this.buffer,
+      startFraction,
+    );
     if (this.params.loop) {
       source.loopStart = offsetSeconds;
       source.loopEnd = offsetSeconds + durationSeconds;
@@ -175,11 +190,14 @@ export class SamplePlayer implements NoteTarget {
    * a UI could hand back an in-progress drag where the handles have
    * crossed, and an inverted or negative duration would throw at
    * source.start() rather than just clamping to silence. */
-  private rangeSeconds(buffer: AudioBuffer): {
+  private rangeSeconds(
+    buffer: AudioBuffer,
+    startFractionOverride?: number,
+  ): {
     offsetSeconds: number;
     durationSeconds: number;
   } {
-    const start = Math.min(
+    const rangeStart = Math.min(
       1,
       Math.max(0, Math.min(this.params.rangeStart, this.params.rangeEnd)),
     );
@@ -187,6 +205,12 @@ export class SamplePlayer implements NoteTarget {
       1,
       Math.max(0, Math.max(this.params.rangeStart, this.params.rangeEnd)),
     );
+    // Clamped into [rangeStart, end], not raw 0..1 -- an override still
+    // has to respect the trim, same as rangeStart itself always has.
+    const start =
+      startFractionOverride === undefined
+        ? rangeStart
+        : Math.min(Math.max(startFractionOverride, rangeStart), end);
     return {
       offsetSeconds: start * buffer.duration,
       durationSeconds: Math.max(0, (end - start) * buffer.duration),
