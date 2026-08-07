@@ -1,0 +1,5 @@
+.git
+node_modules
+dist
+demo/node_modules
+e2e/node_modules

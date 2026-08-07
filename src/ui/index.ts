@@ -3,3 +3,7 @@ export * from "./waveformView";
 export * from "./waveformRangeView";
 export * from "./automationEditor";
 export * from "./stepSequencerEditor";
+export * from "./fields";
+export * from "./dragPaint";
+export * from "./effectTable";
+export * from "./effectsFields";

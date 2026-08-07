@@ -30,11 +30,18 @@ what's currently in the repo with no build step first.
 
 - **`bruit-kit/audio`** — audio effects (each with a dry/wet
   control, except the always-fully-engaged safety limiter), a
-  `MediaRecorder`-based recorder, an LFO modulation engine, and
-  breakpoint-curve automation scheduling.
+  `MediaRecorder`-based recorder, an LFO modulation engine, a random-walk
+  "drift" pacing helper, breakpoint-curve automation scheduling,
+  `EffectSpec`/`buildEffectsChain` (a declarative effect-chain config type
+  + builder covering every effect above), and offline (faster-than-real-
+  time) buffer processing -- trim/speed-change/bake-a-chain-onto-a-buffer.
 - **`bruit-kit/ui`** — vanilla-DOM widgets (waveform views, a
-  breakpoint-curve editor, a step-sequencer grid, slider helpers), each
-  paired with its own `.css` file.
+  breakpoint-curve editor, a step-sequencer grid, slider helpers, a
+  generic declarative form-field renderer, click-and-drag "paint" over a
+  grid of cells), each paired with its own `.css` file where it needs one.
+  `effectTable.ts`/`effectsFields.ts` pair with `EffectSpec` above to turn
+  it into a full editable UI (every param, per-instance custom ranges,
+  live drift) with no host-app dependency beyond an `EffectSpec[]`.
 - **`bruit-kit/midi`** — the `NoteTarget`/`ClockedNoteTarget`
   abstraction everything else is built on, MIDI file playback, and
   performance effects (chord, arpeggiator, step sequencer) usable live or
