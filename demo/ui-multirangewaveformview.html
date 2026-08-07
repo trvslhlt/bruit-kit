@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createMultiRangeWaveformView demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createMultiRangeWaveformView</h1>
+    <p class="demo-note">
+      Many independently-colored, independently-draggable ranges on one
+      waveform — click a region or handle to select it (drawn on top),
+      drag its handles to resize. "Simulate drift" shows the dashed live
+      overlay a host app would drive from its own scheduler.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <div id="waveform"></div>
+    <p id="selected-text" class="demo-note"></p>
+    <p>
+      <button id="add-node">Add node</button>
+      <button id="remove-node">Remove selected</button>
+      <label><input type="checkbox" id="drift-toggle" /> Simulate drift</label>
+    </p>
+    <script type="module" src="/ui-multirangewaveformview.ts"></script>
+  </body>
+</html>

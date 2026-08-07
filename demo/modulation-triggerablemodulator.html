@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createTriggerableModulator demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createTriggerableModulator</h1>
+    <p class="demo-note">
+      A continuously-running LFO modulates the filter's cutoff. Press
+      "Trigger sweep" (while holding a key) to ramp the LFO's own rate
+      1Hz&nbsp;&rarr;&nbsp;20Hz and its depth up then back down over two
+      seconds -- the same scheduleAutomation call relpmas's modulation
+      routes use, just wired to a button instead of a node's own trigger.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <p><button id="trigger-button">Trigger sweep</button></p>
+    <script type="module" src="/modulation-triggerablemodulator.ts"></script>
+  </body>
+</html>

@@ -11,6 +11,7 @@
     "./ui/columns.css": "./dist/ui/columns.css",
     "./ui/waveformView.css": "./dist/ui/waveformView.css",
     "./ui/waveformRangeView.css": "./dist/ui/waveformRangeView.css",
+    "./ui/multiRangeWaveformView.css": "./dist/ui/multiRangeWaveformView.css",
     "./ui/sliderControl.css": "./dist/ui/sliderControl.css",
     "./ui/automationEditor.css": "./dist/ui/automationEditor.css",
     "./ui/stepSequencerEditor.css": "./dist/ui/stepSequencerEditor.css",
@@ -27,11 +28,12 @@
       "import": "./dist/sources/index.js"
     },
     "./sources/granular-processor.js": "./dist/sources/granular-processor.js",
+    "./sources/directional-sample-processor.js": "./dist/sources/directional-sample-processor.js",
     "./audio/pitch-shift-processor.js": "./dist/audio/pitch-shift-processor.js",
     "./audio/sample-rate-reducer-processor.js": "./dist/audio/sample-rate-reducer-processor.js"
   },
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/ && mkdir -p dist/sources && cp src/sources/granular-processor.js dist/sources/ && mkdir -p dist/audio && cp src/audio/pitch-shift-processor.js dist/audio/ && cp src/audio/sample-rate-reducer-processor.js dist/audio/",
+    "build": "vite build && tsc --emitDeclarationOnly && mkdir -p dist/ui && cp src/ui/*.css dist/ui/ && mkdir -p dist/sources && cp src/sources/granular-processor.js dist/sources/ && cp src/sources/directional-sample-processor.js dist/sources/ && mkdir -p dist/audio && cp src/audio/pitch-shift-processor.js dist/audio/ && cp src/audio/sample-rate-reducer-processor.js dist/audio/",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "tsc --noEmit",

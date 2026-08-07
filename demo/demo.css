@@ -4,6 +4,7 @@
 @import "../src/ui/stepSequencerEditor.css";
 @import "../src/ui/waveformView.css";
 @import "../src/ui/waveformRangeView.css";
+@import "../src/ui/multiRangeWaveformView.css";
 
 :root {
   color-scheme: dark;

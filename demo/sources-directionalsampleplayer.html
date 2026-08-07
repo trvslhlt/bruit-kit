@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DirectionalSamplePlayer demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>DirectionalSamplePlayer</h1>
+    <p class="demo-note">
+      Drag the range, then fire it forward, backward, as an alternating
+      burst, or overlapping both directions at once. The one piece of
+      bruit-kit that can play audio backward — listen for clicks at the
+      direction changes and at the overlap.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <div id="waveform"></div>
+    <p>
+      <button id="play-forward">Play forward</button>
+      <button id="play-backward">Play backward</button>
+      <button id="play-burst">Play alternating burst (6x)</button>
+      <button id="play-overlap">Play forward + backward overlapped</button>
+    </p>
+    <div id="params"></div>
+    <script type="module" src="/sources-directionalsampleplayer.ts"></script>
+  </body>
+</html>

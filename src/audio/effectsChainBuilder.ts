@@ -193,6 +193,21 @@ export interface BuiltEffectsChain extends ChainableNode {
    * harmless no-op, not an error, since a drift engine tick always reads
    * fresh state anyway and will simply stop applying next tick. */
   setParamsAt(index: number, params: Record<string, number | string>): void;
+  /** Looks up one already-instantiated effect's own exposed AudioParam by
+   * property name (e.g. `getAudioParam(0, "frequencyParam")` for a chain
+   * whose first effect is a FilterEffect) -- for a caller that wants to
+   * schedule automation or connect an external modulator directly onto a
+   * running effect's param (see relpmas's modulation-routes feature),
+   * rather than only being able to set discrete values through
+   * setParamsAt. Most effect classes already expose their automatable
+   * params this way (FilterEffect.frequencyParam, DelayEffect.
+   * delayTimeParam, ChorusEffect.rateParam, ...) for exactly this kind of
+   * external connection -- see each effect's own class for what it
+   * exposes. Returns undefined for a stale index or a key that isn't an
+   * AudioParam on that instance, rather than throwing, since a caller
+   * driving this from user-editable config (an arbitrary typed-in key
+   * name) can't guarantee either ahead of time. */
+  getAudioParam(index: number, key: string): AudioParam | undefined;
 }
 
 export function buildEffectsChain(
@@ -215,6 +230,13 @@ export function buildEffectsChain(
           })
         | undefined;
       node?.setParams?.(params);
+    },
+    getAudioParam(index, key) {
+      const node = nodes[index] as unknown as
+        | Record<string, unknown>
+        | undefined;
+      const value = node?.[key];
+      return value instanceof AudioParam ? value : undefined;
     },
   };
 }
