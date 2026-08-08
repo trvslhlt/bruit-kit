@@ -62,22 +62,6 @@
   touch-action: none;
 }
 
-.zoomable-waveform-zoom-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-}
-
-.zoomable-waveform-zoom-label {
-  color: #9aa0ab;
-  flex-shrink: 0;
-}
-
-.zoomable-waveform-zoom-row input[type="range"] {
-  flex: 1;
-}
-
 .zoomable-waveform-zoom-controls {
   position: absolute;
   top: 0.4rem;

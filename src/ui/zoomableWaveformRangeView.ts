@@ -1,9 +1,10 @@
 // A single {start, end} range editor like waveformRangeView.ts, but with a
 // zoomable/pannable view window on top: at 1x zoom it's the same "drag two
-// handles across the whole buffer" widget, but a zoom slider (and mouse
-// wheel over the waveform) narrows the visible window so a long buffer's
-// fine detail is reachable, with a scrollbar below the waveform to pan
-// once zoomed in. A new, standalone widget rather than an added mode on
+// handles across the whole buffer" widget, but zoom in/out buttons
+// overlaid on the waveform (and mouse wheel over the waveform) narrow the
+// visible window so a long buffer's fine detail is reachable, with a
+// scrollbar below the waveform to pan once zoomed in. A new, standalone
+// widget rather than an added mode on
 // waveformRangeView.ts itself -- that one has existing consumers
 // (grid-sequencer's sampleEditorModal.ts) that don't expect a zoom UI to
 // appear, and bruit-kit's own convention is small focused widgets over one
@@ -42,9 +43,9 @@ export interface ZoomableWaveformRangeViewHandle {
   setLiveMarker(position: number | null): void;
 }
 
-// Narrowest zoomable window -- ~500x zoom at the slider's max, and a floor
-// that keeps view width comfortably away from 0 (a zero-width view would
-// make the buffer-position math below divide by zero).
+// Narrowest zoomable window -- ~500x zoom at max, and a floor that keeps
+// view width comfortably away from 0 (a zero-width view would make the
+// buffer-position math below divide by zero).
 const MIN_VIEW_WIDTH = 0.002;
 
 export function createZoomableWaveformRangeView(
@@ -244,52 +245,18 @@ export function createZoomableWaveformRangeView(
       (event.clientX - trackBounds.left) / trackBounds.width;
     const viewWidth = viewEnd - viewStart;
     setView(clickFraction - viewWidth / 2, clickFraction + viewWidth / 2);
-    syncZoomSlider();
   });
 
-  // --- Zoom slider + wheel-to-zoom ---
-  const zoomRow = document.createElement("div");
-  zoomRow.className = "zoomable-waveform-zoom-row";
-  const zoomLabel = document.createElement("span");
-  zoomLabel.className = "zoomable-waveform-zoom-label";
-  zoomLabel.textContent = "Zoom";
-  const zoomInput = document.createElement("input");
-  zoomInput.type = "range";
-  zoomInput.min = "0";
-  zoomInput.max = "1";
-  zoomInput.step = "0.001";
-  zoomInput.value = "0";
-  zoomRow.append(zoomLabel, zoomInput);
-  wrapper.appendChild(zoomRow);
-
-  // Zoom in/out buttons overlay the waveform's top-right corner rather than
-  // sitting in their own row below -- keeps the widget's footprint down to
-  // waveform + scrollbar + slider instead of an extra control row.
+  // --- Zoom in/out buttons (overlaid on the waveform's top-right corner)
+  // + wheel-to-zoom ---
   const zoomControls = document.createElement("div");
   zoomControls.className = "zoomable-waveform-zoom-controls";
   svgStack.appendChild(zoomControls);
-
-  // Log-scale slider: 0 -> full buffer (1.0), 1 -> MIN_VIEW_WIDTH -- a
-  // linear slider over view-width would spend almost its whole range on
-  // zoom levels indistinguishable from "fully zoomed in."
-  function sliderToViewWidth(sliderValue: number): number {
-    return MIN_VIEW_WIDTH ** sliderValue;
-  }
-  function viewWidthToSlider(viewWidth: number): number {
-    return Math.log(viewWidth) / Math.log(MIN_VIEW_WIDTH);
-  }
-  function syncZoomSlider(): void {
-    zoomInput.value = String(viewWidthToSlider(viewEnd - viewStart));
-  }
 
   function zoomAroundCenter(newViewWidth: number): void {
     const center = (viewStart + viewEnd) / 2;
     setView(center - newViewWidth / 2, center + newViewWidth / 2);
   }
-
-  zoomInput.addEventListener("input", () => {
-    zoomAroundCenter(sliderToViewWidth(Number(zoomInput.value)));
-  });
 
   // Same step factor as wheel-to-zoom below, just centered on the current
   // view instead of the cursor -- buttons have no cursor position to zoom
@@ -300,7 +267,6 @@ export function createZoomableWaveformRangeView(
     zoomAroundCenter(
       Math.max(MIN_VIEW_WIDTH, Math.min(1, currentViewWidth * factor)),
     );
-    syncZoomSlider();
   }
 
   const zoomOutButton = document.createElement("button");
@@ -340,7 +306,6 @@ export function createZoomableWaveformRangeView(
       // standard "zoom to cursor" feel.
       const newStart = cursorBufferPos - localFraction * newViewWidth;
       setView(newStart, newStart + newViewWidth);
-      syncZoomSlider();
     },
     { passive: false },
   );
@@ -350,7 +315,6 @@ export function createZoomableWaveformRangeView(
       buffer = newBuffer;
       viewStart = 0;
       viewEnd = 1;
-      zoomInput.value = "0";
       redrawWaveform();
       redrawHandles();
       redrawScrollbar();
