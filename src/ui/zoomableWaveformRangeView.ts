@@ -17,6 +17,11 @@
 // entries competing for paint order, so no dragInProgress-style guard is
 // needed (nothing here ever reorders the DOM out from under an active
 // drag).
+//
+// {start, end} is directional, matching DirectionalSamplePlayer's own
+// startFraction/endFraction: dragging the start handle past the end handle
+// (or vice versa) is allowed, and represents the fragment wrapping through
+// the buffer's end back to its start, not an invalid state to clamp away.
 
 // Not re-exported here -- waveformRangeView.ts already does via ui/index.ts's
 // own `export *`, and a second `export type { WaveformRange }` here would
@@ -128,11 +133,17 @@ export function createZoomableWaveformRangeView(
     return handle;
   }
 
+  // Each handle clamps only into [0,1], independently of the other -- not
+  // against each other the way an unordered {lo,hi} pair would. Dragging
+  // start past end (or vice versa) is how a wrapped fragment (running
+  // through the buffer's end back to its start) gets created, matching
+  // DirectionalSamplePlayer's own directional startFraction/endFraction
+  // semantics (see its module doc comment).
   const startHandle = makeHandle((pos) => {
-    range.start = Math.min(Math.max(pos, 0), range.end);
+    range.start = Math.min(Math.max(pos, 0), 1);
   });
   const endHandle = makeHandle((pos) => {
-    range.end = Math.max(Math.min(pos, 1), range.start);
+    range.end = Math.min(Math.max(pos, 0), 1);
   });
   svg.append(startHandle, endHandle);
 
@@ -149,10 +160,25 @@ export function createZoomableWaveformRangeView(
     startHandle.setAttribute("x2", String(clampedX1));
     endHandle.setAttribute("x1", String(clampedX2));
     endHandle.setAttribute("x2", String(clampedX2));
-    beforeDim.setAttribute("x", "0");
-    beforeDim.setAttribute("width", String(clampedX1));
-    afterDim.setAttribute("x", String(clampedX2));
-    afterDim.setAttribute("width", String(Math.max(0, width - clampedX2)));
+    if (range.start <= range.end) {
+      beforeDim.setAttribute("x", "0");
+      beforeDim.setAttribute("width", String(clampedX1));
+      afterDim.setAttribute("x", String(clampedX2));
+      afterDim.setAttribute("width", String(Math.max(0, width - clampedX2)));
+    } else {
+      // Wrapped: the selected fragment runs through the buffer's end back
+      // to its start, so the single dimmed (unselected) span is the strip
+      // between end and start instead of the two outer strips. clampedX2
+      // <= clampedX1 always holds here since bufferPosToLocalX and the
+      // clamp above are both monotonic, preserving range.end < range.start.
+      beforeDim.setAttribute("x", String(clampedX2));
+      beforeDim.setAttribute(
+        "width",
+        String(Math.max(0, clampedX1 - clampedX2)),
+      );
+      afterDim.setAttribute("x", String(width));
+      afterDim.setAttribute("width", "0");
+    }
 
     if (
       liveMarkerPos !== null &&

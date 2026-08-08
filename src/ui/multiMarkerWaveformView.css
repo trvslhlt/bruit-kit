@@ -16,6 +16,10 @@
   pointer-events: none;
 }
 
+.multi-marker-range-box {
+  fill-opacity: 0.22;
+}
+
 .multi-marker-hit-area {
   fill: transparent;
   cursor: ew-resize;

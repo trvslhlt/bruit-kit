@@ -14,15 +14,27 @@
 // start a drag on a right-click too and the browser's native context menu
 // would need suppressing either way.
 
+// Not re-exported here -- waveformRangeView.ts already does via ui/index.ts's
+// own `export *` (see zoomableWaveformRangeView.ts's identical situation).
+import type { WaveformRange } from "./waveformRangeView";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 export interface MarkerEntry {
   id: string;
   /** 0..1 fraction of the loaded buffer's own duration. */
   position: number;
-  /** Any valid CSS color -- stroke for this entry's marker line. */
+  /** Any valid CSS color -- stroke for this entry's marker line, and fill
+   * for the range box below. */
   color: string;
   label?: string;
+  /** A translucent box drawn behind this entry's marker line, showing the
+   * full fragment (not just its start) -- optional since a caller with no
+   * notion of a range (just positions) can omit it entirely. Directional
+   * like DirectionalSamplePlayer's own startFraction/endFraction: if
+   * `end < start`, the fragment wraps past the buffer's end back to its
+   * start, drawn as two boxes instead of one. */
+  range?: WaveformRange;
 }
 
 export interface MultiMarkerWaveformViewOptions {
@@ -44,6 +56,11 @@ export interface MultiMarkerWaveformViewHandle {
   setMarkers(entries: MarkerEntry[]): void;
   setPosition(id: string, position: number): void;
   getPosition(id: string): number | undefined;
+  /** Updates just an entry's range box without touching its marker position
+   * -- cheap (reposition only, no rebuild), safe to call on every
+   * pointermove of a drag the same way setPosition already is. `null`
+   * hides the box. */
+  setRange(id: string, range: WaveformRange | null): void;
   /** Draws the given entry's marker on top and styled distinctly; `null`
    * clears the selection highlight. Purely visual -- does not affect
    * onSelect, which fires from user interaction instead. */
@@ -60,6 +77,12 @@ interface EntryElements {
   handle: SVGLineElement;
   label: SVGTextElement | null;
   liveMarker: SVGLineElement | null;
+  /** Always both created, regardless of whether this entry currently has a
+   * range -- rangeBoxB only actually shows when the range wraps (see
+   * reposition), so there's no presence-toggle that would force a rebuild
+   * the way liveMarker's does. */
+  rangeBoxA: SVGRectElement;
+  rangeBoxB: SVGRectElement;
 }
 
 // Wider than the visible line itself so a thin marker stays easy to grab
@@ -132,6 +155,12 @@ export function createMultiMarkerWaveformView(
   /** Cheap in-place update of one entry's existing elements -- safe to call
    * mid-drag (see the module doc comment for why this can't just be
    * `rebuild()`). */
+  function setRect(rect: SVGRectElement, x: number, w: number): void {
+    rect.setAttribute("x", String(x));
+    rect.setAttribute("width", String(Math.max(0, w)));
+    rect.style.display = w > 0 ? "" : "none";
+  }
+
   function reposition(id: string): void {
     const entry = entries.get(id);
     const el = elements.get(id);
@@ -148,6 +177,22 @@ export function createMultiMarkerWaveformView(
       el.liveMarker.setAttribute("x1", String(liveX));
       el.liveMarker.setAttribute("x2", String(liveX));
     }
+
+    if (entry.range) {
+      const { start, end } = entry.range;
+      if (start <= end) {
+        setRect(el.rangeBoxA, start * width, (end - start) * width);
+        setRect(el.rangeBoxB, 0, 0);
+      } else {
+        // Wrapped: the fragment runs through the buffer's end back to its
+        // start, so it's drawn as two boxes instead of one.
+        setRect(el.rangeBoxA, start * width, (1 - start) * width);
+        setRect(el.rangeBoxB, 0, end * width);
+      }
+    } else {
+      setRect(el.rangeBoxA, 0, 0);
+      setRect(el.rangeBoxB, 0, 0);
+    }
   }
 
   /** Builds (or fully replaces) one entry's DOM group -- only called for
@@ -155,6 +200,17 @@ export function createMultiMarkerWaveformView(
   function buildEntry(entry: MarkerEntry): EntryElements {
     const group = document.createElementNS(SVG_NS, "g");
     group.setAttribute("class", "multi-marker-entry");
+
+    const rangeBoxA = document.createElementNS(SVG_NS, "rect");
+    const rangeBoxB = document.createElementNS(SVG_NS, "rect");
+    for (const box of [rangeBoxA, rangeBoxB]) {
+      box.setAttribute("class", "multi-marker-range-box");
+      box.setAttribute("y", "0");
+      box.setAttribute("height", String(height));
+      box.setAttribute("fill", entry.color);
+      box.style.pointerEvents = "none";
+      group.appendChild(box);
+    }
 
     const handle = document.createElementNS(SVG_NS, "line");
     handle.setAttribute("y1", "0");
@@ -240,7 +296,7 @@ export function createMultiMarkerWaveformView(
       group.appendChild(liveMarker);
     }
 
-    return { group, hitArea, handle, label, liveMarker };
+    return { group, hitArea, handle, label, liveMarker, rangeBoxA, rangeBoxB };
   }
 
   function applyStyles(): void {
@@ -304,6 +360,12 @@ export function createMultiMarkerWaveformView(
     },
     getPosition(id) {
       return entries.get(id)?.position;
+    },
+    setRange(id, range) {
+      const entry = entries.get(id);
+      if (!entry) return;
+      entry.range = range ?? undefined;
+      reposition(id);
     },
     setSelected(id) {
       if (id === selectedId) return;

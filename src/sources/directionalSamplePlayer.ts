@@ -24,9 +24,12 @@ export interface PlayVoiceOptions {
   /** Caller-supplied id for later stopVoice()/onVoiceEnded() correlation.
    * Omitted, one is generated and returned. */
   id?: number;
-  /** 0..1 fractions of the loaded buffer's own duration. Order doesn't
-   * matter -- the processor sorts them, `direction` alone controls which
-   * way playback actually reads. */
+  /** 0..1 fractions of the loaded buffer's own duration. Directional, not
+   * an unordered {lo,hi} bound: the selected fragment always runs forward
+   * from startFraction to endFraction, wrapping past the buffer's end back
+   * to its start if endFraction < startFraction (a true circular
+   * fragment). `direction` picks which way playback actually reads that
+   * same fragment. */
   startFraction: number;
   endFraction: number;
   direction: PlaybackDirection;
