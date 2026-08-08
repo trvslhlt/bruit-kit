@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createZoomableWaveformRangeView demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createZoomableWaveformRangeView</h1>
+    <p class="demo-note">
+      Drag the two handles to pick a {start, end} range, same as
+      createWaveformRangeView -- but drag the "Zoom" slider (or scroll the
+      mouse wheel over the waveform) to zoom in, then drag the scrollbar
+      below the waveform (or click it to jump) to pan around.
+    </p>
+    <div id="unlock"></div>
+    <p><input type="file" id="file-input" accept="audio/*" /></p>
+    <div id="waveform"></div>
+    <p id="range-text" class="demo-note"></p>
+    <p>
+      <label
+        ><input type="checkbox" id="live-toggle" /> Simulate a live
+        marker</label
+      >
+    </p>
+    <script type="module" src="/ui-zoomablewaveformrangeview.ts"></script>
+  </body>
+</html>

@@ -80,6 +80,24 @@ export function createMultiRangeWaveformView(
   let buffer: AudioBuffer | null = null;
   let svg: SVGSVGElement | null = null;
   let waveformPolygon: SVGPolygonElement | null = null;
+  // True for the duration of any entry's drag -- see setSelected's own
+  // comment for why the z-order reorder it normally does has to be
+  // deferred until pointerup while this is true, not just skipped when
+  // the dragged entry happens to already be selected (see
+  // reorderSelectedToTop's own doc, and multiMarkerWaveformView.ts's
+  // identical pattern, added when this exact bug turned up there first).
+  let dragInProgress = false;
+
+  /** Moves the currently-selected entry's group to the end of the SVG
+   * (drawn on top) if it isn't already there -- the one place that does
+   * this reorder, called either immediately (selection changed outside a
+   * drag) or deferred to pointerup (selection changed *by* a drag-start). */
+  function reorderSelectedToTop(): void {
+    const el = selectedId ? elements.get(selectedId) : null;
+    if (el && svg && svg.lastElementChild !== el.group) {
+      svg.appendChild(el.group);
+    }
+  }
 
   function drawWaveform(): void {
     if (!svg || !buffer || !waveformPolygon) return;
@@ -149,7 +167,13 @@ export function createMultiRangeWaveformView(
     let dragging = false;
     handle.addEventListener("pointerdown", (event) => {
       dragging = true;
+      dragInProgress = true;
       handle.setPointerCapture(event.pointerId);
+      // Starting a drag on a not-yet-selected entry changes selection
+      // (via this call, into setSelected below) in the same synchronous
+      // handler that just requested capture above -- see
+      // reorderSelectedToTop's doc and setSelected's own comment for why
+      // that reorder has to wait for pointerup instead of happening here.
       options.onSelect?.(entryId);
     });
     handle.addEventListener("pointermove", (event) => {
@@ -163,6 +187,11 @@ export function createMultiRangeWaveformView(
     });
     handle.addEventListener("pointerup", () => {
       dragging = false;
+      dragInProgress = false;
+      // Capture (and the drag it protected) is over -- safe to apply
+      // whatever reorder setSelected deferred while it was active.
+      reorderSelectedToTop();
+      applyStyles();
     });
     return handle;
   }
@@ -290,25 +319,17 @@ export function createMultiRangeWaveformView(
       return entry ? { ...entry.range } : undefined;
     },
     setSelected(id) {
-      // No-op if this entry is already selected -- critically, not just an
-      // optimization: makeHandle's own pointerdown handler calls
-      // options.onSelect (hence this) *after* setPointerCapture, on every
-      // press including a drag-to-resize of an already-selected entry's own
-      // handle. Reordering the DOM (appendChild below) on that redundant
-      // call would immediately release the capture just requested in the
-      // same event handler -- appendChild of an already-attached node is a
-      // remove-then-reinsert, and removing a node from the DOM implicitly
-      // releases any pointer capture on it or its descendants. Skipping the
-      // reorder when nothing actually changed is what keeps a drag alive.
       if (id === selectedId) return;
       selectedId = id;
-      // Selection changes z-order (selected entry draws on top) as well as
-      // style, so this needs the group reordered -- appendChild on an
-      // already-attached node moves it without recreating it, so any
-      // in-progress drag *of a different entry* than the one being
-      // reordered keeps its own pointer capture.
-      const el = selectedId ? elements.get(selectedId) : null;
-      if (el && svg) svg.appendChild(el.group);
+      // While a drag is in progress, its own pointerdown handler already
+      // called this (that's how selection changes to begin with, for an
+      // entry that wasn't already selected) and will reorder once it's
+      // safe to, at pointerup. Reordering here too, synchronously, is
+      // exactly the DOM-removal-releases-capture hazard makeHandle's own
+      // comment describes; outside a drag (e.g. a host app selecting a
+      // node some other way, like clicking a list item) there's no
+      // capture at risk, so it's safe to do immediately.
+      if (!dragInProgress) reorderSelectedToTop();
       applyStyles();
     },
     setLiveOverlay(id, range) {

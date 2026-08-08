@@ -5,6 +5,8 @@
 @import "../src/ui/waveformView.css";
 @import "../src/ui/waveformRangeView.css";
 @import "../src/ui/multiRangeWaveformView.css";
+@import "../src/ui/multiMarkerWaveformView.css";
+@import "../src/ui/zoomableWaveformRangeView.css";
 
 :root {
   color-scheme: dark;

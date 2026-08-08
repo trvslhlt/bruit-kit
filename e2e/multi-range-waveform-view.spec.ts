@@ -76,3 +76,44 @@ test("dragging one entry's handle doesn't affect another entry's range", async (
 
   expect(errors, errors.join("\n")).toEqual([]);
 });
+
+test("dragging a not-yet-selected entry's handle directly still moves it", async ({
+  page,
+}) => {
+  // Regression test: starting a drag on an entry that isn't already
+  // selected changes selection (via onSelect) inside the same
+  // pointerdown handler that just requested pointer capture on the
+  // handle -- setSelected used to reorder the DOM synchronously right
+  // there, which releases capture on removal-then-reinsert and silently
+  // turns the rest of the drag into a no-op. This is the more common
+  // real-world gesture (click-and-drag in one motion) than the other
+  // test's pre-select-then-drag.
+  const errors: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(msg.text());
+  });
+  page.on("pageerror", (err) => errors.push(err.message));
+
+  await page.goto("/ui-multirangewaveformview.html");
+  await page.locator(".unlock-button").click();
+  await page.waitForTimeout(200);
+
+  // node-1 is selected by default. node-3's own end handle (90%) isn't
+  // covered by any other entry's fill, so this is a clean drag target
+  // with no z-order ambiguity to control for first.
+  const node3End = page
+    .locator(`.multi-range-handle[stroke="${NODE_3_COLOR}"]`)
+    .nth(1);
+  const box = await node3End.boundingBox();
+  if (!box) throw new Error("node-3 end handle not found");
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 60, box.y + box.height / 2, { steps: 5 });
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+
+  await expect(page.locator("#selected-text")).toContainText("node-3");
+  await expect(page.locator("#selected-text")).not.toContainText("end 90.0%");
+  expect(errors, errors.join("\n")).toEqual([]);
+});

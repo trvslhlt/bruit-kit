@@ -2,6 +2,8 @@ export * from "./sliderControl";
 export * from "./waveformView";
 export * from "./waveformRangeView";
 export * from "./multiRangeWaveformView";
+export * from "./multiMarkerWaveformView";
+export * from "./zoomableWaveformRangeView";
 export * from "./automationEditor";
 export * from "./stepSequencerEditor";
 export * from "./fields";
