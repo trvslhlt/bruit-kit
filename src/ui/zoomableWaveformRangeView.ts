@@ -67,11 +67,18 @@ export function createZoomableWaveformRangeView(
   wrapper.className = "zoomable-waveform-range-wrapper";
   container.appendChild(wrapper);
 
+  // Positioning context for the zoom buttons, which overlay the waveform's
+  // top-right corner instead of taking their own row -- see the zoom
+  // in/out buttons below.
+  const svgStack = document.createElement("div");
+  svgStack.className = "zoomable-waveform-svg-stack";
+  wrapper.appendChild(svgStack);
+
   const svg = document.createElementNS(SVG_NS, "svg");
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   svg.setAttribute("preserveAspectRatio", "none");
   svg.setAttribute("class", "zoomable-waveform-range-svg");
-  wrapper.appendChild(svg);
+  svgStack.appendChild(svg);
 
   const waveformPolygon = document.createElementNS(SVG_NS, "polygon");
   waveformPolygon.setAttribute("class", "zoomable-waveform-range-line");
@@ -255,6 +262,13 @@ export function createZoomableWaveformRangeView(
   zoomRow.append(zoomLabel, zoomInput);
   wrapper.appendChild(zoomRow);
 
+  // Zoom in/out buttons overlay the waveform's top-right corner rather than
+  // sitting in their own row below -- keeps the widget's footprint down to
+  // waveform + scrollbar + slider instead of an extra control row.
+  const zoomControls = document.createElement("div");
+  zoomControls.className = "zoomable-waveform-zoom-controls";
+  svgStack.appendChild(zoomControls);
+
   // Log-scale slider: 0 -> full buffer (1.0), 1 -> MIN_VIEW_WIDTH -- a
   // linear slider over view-width would spend almost its whole range on
   // zoom levels indistinguishable from "fully zoomed in."
@@ -276,6 +290,38 @@ export function createZoomableWaveformRangeView(
   zoomInput.addEventListener("input", () => {
     zoomAroundCenter(sliderToViewWidth(Number(zoomInput.value)));
   });
+
+  // Same step factor as wheel-to-zoom below, just centered on the current
+  // view instead of the cursor -- buttons have no cursor position to zoom
+  // toward.
+  const ZOOM_STEP_FACTOR = 0.85;
+  function stepZoom(factor: number): void {
+    const currentViewWidth = viewEnd - viewStart;
+    zoomAroundCenter(
+      Math.max(MIN_VIEW_WIDTH, Math.min(1, currentViewWidth * factor)),
+    );
+    syncZoomSlider();
+  }
+
+  const zoomOutButton = document.createElement("button");
+  zoomOutButton.type = "button";
+  zoomOutButton.className = "zoomable-waveform-zoom-button";
+  zoomOutButton.textContent = "−";
+  zoomOutButton.setAttribute("aria-label", "Zoom out");
+  zoomOutButton.addEventListener("click", () => {
+    stepZoom(1 / ZOOM_STEP_FACTOR);
+  });
+
+  const zoomInButton = document.createElement("button");
+  zoomInButton.type = "button";
+  zoomInButton.className = "zoomable-waveform-zoom-button";
+  zoomInButton.textContent = "+";
+  zoomInButton.setAttribute("aria-label", "Zoom in");
+  zoomInButton.addEventListener("click", () => {
+    stepZoom(ZOOM_STEP_FACTOR);
+  });
+
+  zoomControls.append(zoomOutButton, zoomInButton);
 
   svg.addEventListener(
     "wheel",
