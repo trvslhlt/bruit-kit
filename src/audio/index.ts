@@ -29,6 +29,7 @@ export * from "./parametricWaveshaperEffect";
 export * from "./weightedRandom";
 export * from "./sourceSwitcher";
 export * from "./recorder";
+export * from "./wavEncoder";
 export * from "./automation";
 export * from "./modulation/types";
 export * from "./modulation/targetRegistry";
