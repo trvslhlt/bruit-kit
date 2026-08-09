@@ -37,6 +37,7 @@ export * from "./modulation/lfoEngine";
 export * from "./modulation/driftMath";
 export * from "./modulation/triggerableModulator";
 export * from "./effectSpec";
+export * from "./effectParamRegistry";
 export * from "./effectsChainBuilder";
 export * from "./offlineRendering";
 export * from "./levelMeter";

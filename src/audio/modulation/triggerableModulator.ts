@@ -28,6 +28,12 @@ export interface TriggerableModulator {
    * again is a no-op. */
   connect(target: AudioParam): void;
   disconnect(): void;
+  /** Permanently stops the oscillator and disconnects -- for a caller
+   * whose owning thing (e.g. a relpmas sample node) is being torn down
+   * entirely, not just temporarily disabling the route. Unlike
+   * disconnect(), not safe to connect() again afterward (a stopped
+   * OscillatorNode can never restart, Web Audio spec). */
+  dispose(): void;
 }
 
 /** The oscillator starts immediately and runs continuously -- "triggering"
@@ -60,6 +66,11 @@ export function createTriggerableModulator(
     disconnect() {
       if (connectedParam) depthGain.disconnect(connectedParam);
       connectedParam = null;
+    },
+    dispose() {
+      if (connectedParam) depthGain.disconnect(connectedParam);
+      connectedParam = null;
+      oscillator.stop();
     },
   };
 }
