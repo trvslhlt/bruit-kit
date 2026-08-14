@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PhaseDistortionSynth demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>PhaseDistortionSynth</h1>
+    <p class="demo-note">
+      Casio CZ-style phase distortion: a linear phase ramp is warped
+      through the curve below *before* it's used to index a sine lookup —
+      reading the same sine at an uneven rate produces extra harmonics.
+      Drag the curve to reshape the tone; "Distortion amount" blends
+      between a plain sine (0) and the fully-warped curve (1). Try the
+      default sawtooth-ish curve, or draw a step for a hollow/square-ish
+      tone.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="editor"></div>
+    <div id="params"></div>
+    <script type="module" src="/sources-phasedistortion.ts"></script>
+  </body>
+</html>

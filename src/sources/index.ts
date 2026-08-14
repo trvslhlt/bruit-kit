@@ -6,3 +6,4 @@ export * from "./oscillatorSynth";
 export * from "./samplePlayer";
 export * from "./noiseGenerator";
 export * from "./fmSynth";
+export * from "./phaseDistortionSynth";
