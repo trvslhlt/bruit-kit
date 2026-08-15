@@ -11,7 +11,20 @@
 // voices into a pattern (repeats, curve-spaced gaps, drift) is a host-app
 // concern (relpmas's SampleNodeEngine), not this class's.
 
+import { type AutomationPoint, sampleCurveAt } from "../audio/automation";
+
 export type PlaybackDirection = "forward" | "backward";
+
+// Resolution of the per-voice envelope lookup table (see playVoice's own
+// envelopeCurve option) -- same "power of 2 + 1" sizing and the same
+// build-on-the-main-thread-then-transfer-a-Float32Array approach
+// phaseDistortionSynth.ts's setDistortionCurve already uses for its own
+// per-sample curve lookup, just built fresh per voice instead of once
+// globally (a voice's envelope can differ fire to fire, unlike a synth's
+// persistent distortion table). Smaller than setDistortionCurve's 513
+// since a plain gain envelope needs far less resolution than a phase
+// warp table.
+const ENVELOPE_TABLE_SIZE = 257;
 
 export interface DirectionalSamplePlayerOptions {
   /** Where the AudioWorkletProcessor script is served from -- see
@@ -42,6 +55,17 @@ export interface PlayVoiceOptions {
   /** Tape-style: shifts pitch and speed together, same rate math as
    * pitch.ts's semitoneRatio. 0 = unshifted. */
   rateSemitones?: number;
+  /** Amplitude shape over this one voice's own span, sampled by elapsed
+   * fraction (0 at the voice's first frame, 1 at its last) -- independent
+   * of, and multiplied together with, the fixed declick fade `fadeMs`
+   * above (see directional-sample-processor.js's own render() for
+   * exactly how the two combine). Omitted (the default) applies no
+   * envelope at all -- every sample plays at full amplitude except for
+   * fadeMs's own declick ramp, identical to this class's behavior before
+   * this option existed. Curve values are expected in [0,1]; pass a
+   * valueRange-remapped curve yourself if you want to scale a voice's own
+   * peak below 1. */
+  envelopeCurve?: AutomationPoint[];
 }
 
 const DEFAULT_WORKLET_URL = "/worklets/directional-sample-processor.js";
@@ -120,17 +144,40 @@ export class DirectionalSamplePlayer {
    * PlayVoiceOptions.id). */
   playVoice(options: PlayVoiceOptions): number {
     const id = options.id ?? this.nextVoiceId++;
-    this.node?.port.postMessage({
-      type: "playVoice",
-      id,
-      startFraction: options.startFraction,
-      endFraction: options.endFraction,
-      direction: options.direction,
-      time: options.time ?? this.audioContext.currentTime,
-      fadeMs: options.fadeMs ?? DEFAULT_FADE_MS,
-      rateSemitones: options.rateSemitones ?? 0,
-    });
+    // Built here (main thread) via sampleCurveAt, not inside the worklet --
+    // same reasoning as phaseDistortionSynth.ts's setDistortionCurve: a
+    // fixed-resolution table transferred once is far cheaper per-sample
+    // than a breakpoint search on every render() call, and keeps the
+    // worklet script free of any curve-math of its own. Only built (and
+    // only sent, as a transferable) when a caller actually asks for an
+    // envelope -- the common case (no envelopeCurve) costs nothing extra.
+    const envelopeTable = options.envelopeCurve
+      ? this.buildEnvelopeTable(options.envelopeCurve)
+      : null;
+    const transfer = envelopeTable ? [envelopeTable.buffer] : [];
+    this.node?.port.postMessage(
+      {
+        type: "playVoice",
+        id,
+        startFraction: options.startFraction,
+        endFraction: options.endFraction,
+        direction: options.direction,
+        time: options.time ?? this.audioContext.currentTime,
+        fadeMs: options.fadeMs ?? DEFAULT_FADE_MS,
+        rateSemitones: options.rateSemitones ?? 0,
+        envelopeTable,
+      },
+      transfer,
+    );
     return id;
+  }
+
+  private buildEnvelopeTable(points: AutomationPoint[]): Float32Array {
+    const table = new Float32Array(ENVELOPE_TABLE_SIZE);
+    for (let i = 0; i < ENVELOPE_TABLE_SIZE; i++) {
+      table[i] = sampleCurveAt(points, i / (ENVELOPE_TABLE_SIZE - 1));
+    }
+    return table;
   }
 
   /** Fades out and stops one in-flight voice early. A no-op if it's already

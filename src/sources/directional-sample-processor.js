@@ -59,6 +59,14 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
           direction: msg.direction,
           fadeMs: msg.fadeMs,
           rateSemitones: msg.rateSemitones,
+          // A plain Float32Array lookup table built on the main thread
+          // (see DirectionalSamplePlayer.playVoice/buildEnvelopeTable) --
+          // this processor never does curve math of its own, just indexes
+          // into it. null means "no envelope," not "flat envelope at 1":
+          // render() skips the multiply entirely rather than looking up a
+          // table of all-1s, so the common case (no envelope) costs
+          // nothing extra per sample.
+          envelopeTable: msg.envelopeTable ?? null,
         });
         break;
       case "stopVoice":
@@ -106,6 +114,7 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
         elapsed: 0,
         totalFrames: spanFrames / rate,
         fadeFrames,
+        envelopeTable: ev.envelopeTable,
         stopping: false,
         stopGain: 1,
       });
@@ -158,6 +167,22 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
         const fadeOut =
           voice.fadeFrames > 0 ? Math.min(1, remaining / voice.fadeFrames) : 1;
         let gain = Math.min(fadeIn, fadeOut);
+
+        // Independent of, and multiplied together with, fadeIn/fadeOut
+        // above -- fadeFrames is a fast fixed anti-click ramp at each end,
+        // this is a separately-authored amplitude shape across the whole
+        // voice (see DirectionalSamplePlayer.playVoice's own doc comment
+        // on envelopeCurve). voice.totalFrames > 0 is guaranteed here (a
+        // zero-span voice never gets pushed -- see applyEvent).
+        if (voice.envelopeTable) {
+          const table = voice.envelopeTable;
+          const envPos = voice.elapsed / voice.totalFrames;
+          const envIdx = Math.min(
+            table.length - 1,
+            Math.floor(envPos * (table.length - 1)),
+          );
+          gain *= table[envIdx];
+        }
 
         if (voice.stopping) {
           voice.stopGain -= 1 / stopReleaseFrames;
