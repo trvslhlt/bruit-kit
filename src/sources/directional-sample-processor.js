@@ -67,6 +67,11 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
           // table of all-1s, so the common case (no envelope) costs
           // nothing extra per sample.
           envelopeTable: msg.envelopeTable ?? null,
+          // A single flat multiplier, decided by the caller before the
+          // voice ever starts -- distinct from envelopeTable (a shape
+          // that varies sample to sample). See
+          // DirectionalSamplePlayer.playVoice's own gain doc comment.
+          gain: msg.gain ?? 1,
         });
         break;
       case "stopVoice":
@@ -115,6 +120,7 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
         totalFrames: spanFrames / rate,
         fadeFrames,
         envelopeTable: ev.envelopeTable,
+        gain: ev.gain ?? 1,
         stopping: false,
         stopGain: 1,
       });
@@ -183,6 +189,10 @@ class DirectionalSampleProcessor extends AudioWorkletProcessor {
           );
           gain *= table[envIdx];
         }
+
+        // A flat multiplier decided once, before this voice started --
+        // see DirectionalSamplePlayer.playVoice's own gain doc comment.
+        gain *= voice.gain;
 
         if (voice.stopping) {
           voice.stopGain -= 1 / stopReleaseFrames;

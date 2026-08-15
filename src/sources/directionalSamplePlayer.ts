@@ -66,6 +66,14 @@ export interface PlayVoiceOptions {
    * valueRange-remapped curve yourself if you want to scale a voice's own
    * peak below 1. */
   envelopeCurve?: AutomationPoint[];
+  /** Flat multiplier for this one voice's entire span -- independent of,
+   * and multiplied together with, both fadeMs and envelopeCurve above.
+   * Unlike envelopeCurve (a per-sample varying shape), this is a single
+   * number decided once before the voice starts, for a caller that's
+   * already computed "how loud should this particular fire be" itself
+   * (e.g. from its own curve/random/trigger-relative logic) rather than
+   * wanting this class to shape it over time. Defaults to 1. */
+  gain?: number;
 }
 
 const DEFAULT_WORKLET_URL = "/worklets/directional-sample-processor.js";
@@ -166,6 +174,7 @@ export class DirectionalSamplePlayer {
         fadeMs: options.fadeMs ?? DEFAULT_FADE_MS,
         rateSemitones: options.rateSemitones ?? 0,
         envelopeTable,
+        gain: options.gain ?? 1,
       },
       transfer,
     );
