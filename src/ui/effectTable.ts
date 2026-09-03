@@ -464,6 +464,46 @@ export const EFFECT_TABLE: Array<{
     ],
   },
   {
+    type: "combFilter",
+    label: "Comb Filter",
+    params: [
+      {
+        key: "frequency",
+        label: "Frequency (Hz)",
+        kind: "range",
+        min: 20,
+        max: 2000,
+        step: 1,
+        default: 440,
+      },
+      {
+        key: "feedback",
+        label: "Feedback",
+        kind: "range",
+        min: -0.95,
+        max: 0.95,
+        step: 0.01,
+        default: 0.7,
+        // Overrides hardBoundFor's generic "feedback" special case
+        // ({min:0, max:0.98}) -- this one is deliberately bipolar (see
+        // combFilterEffect.ts's own doc comment on what negative feedback
+        // does), not a unipolar amount like every other effect's own
+        // feedback param.
+        hardMin: -0.95,
+        hardMax: 0.95,
+      },
+      {
+        key: "wet",
+        label: "Wet",
+        kind: "range",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        default: 1,
+      },
+    ],
+  },
+  {
     type: "autoWah",
     label: "Auto-Wah",
     params: [

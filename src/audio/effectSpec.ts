@@ -18,6 +18,7 @@ export type EffectType =
   | "chorus"
   | "flanger"
   | "phaser"
+  | "combFilter"
   | "autoWah"
   | "bitcrusher"
   | "reverb"

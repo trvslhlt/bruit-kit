@@ -14,6 +14,7 @@ export * from "./tremoloEffect";
 export * from "./chorusEffect";
 export * from "./flangerEffect";
 export * from "./phaserEffect";
+export * from "./combFilterEffect";
 export * from "./autoWahEffect";
 export * from "./bitcrusherEffect";
 export * from "./softClipEffect";

@@ -48,6 +48,10 @@ const EFFECT_PARAM_OPTIONS: Record<EffectType, EffectParamOption[]> = {
     { key: "rateParam", label: "Rate (Hz)" },
     { key: "feedbackParam", label: "Feedback" },
   ],
+  combFilter: [
+    { key: "delayTimeParam", label: "Delay time (s)" },
+    { key: "feedbackParam", label: "Feedback" },
+  ],
   autoWah: [{ key: "qParam", label: "Q" }],
   bitcrusher: [{ key: "outputGainParam", label: "Output gain" }],
   reverb: [

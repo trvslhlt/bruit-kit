@@ -2,6 +2,7 @@ import { AutoWahEffect } from "./autoWahEffect";
 import { BitcrusherEffect } from "./bitcrusherEffect";
 import { type ChainableNode, chainEffects } from "./chainEffects";
 import { ChorusEffect } from "./chorusEffect";
+import { CombFilterEffect } from "./combFilterEffect";
 import { CompressorEffect } from "./compressorEffect";
 import { DelayEffect } from "./delayEffect";
 import { DistortionEffect } from "./distortionEffect";
@@ -85,6 +86,11 @@ function instantiateEffect(
     }
     case "phaser": {
       const fx = new PhaserEffect(audioContext);
+      fx.setParams({ wet: 1, ...spec.params });
+      return fx;
+    }
+    case "combFilter": {
+      const fx = new CombFilterEffect(audioContext);
       fx.setParams({ wet: 1, ...spec.params });
       return fx;
     }

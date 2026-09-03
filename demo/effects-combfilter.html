@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CombFilterEffect demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>CombFilterEffect</h1>
+    <p class="demo-note">
+      A short, audible-pitch-range delay line with feedback around it --
+      FlangerEffect's exact same wiring, but with the delay time fixed
+      (tuned directly in Hz) instead of swept by an LFO. Feedback is
+      bipolar: positive reinforces every harmonic of Frequency into
+      peaks; negative reinforces the odd harmonics of half that
+      frequency instead, turning Frequency itself into a notch. Try a
+      held note at low Frequency with feedback near +/-0.9 for a
+      resonant "ringing" tone.
+    </p>
+    <div id="unlock"></div>
+    <div id="keyboard"></div>
+    <div id="params"></div>
+    <script type="module" src="/effects-combfilter.ts"></script>
+  </body>
+</html>
