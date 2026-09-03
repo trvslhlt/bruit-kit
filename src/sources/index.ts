@@ -1,5 +1,6 @@
 export * from "./granularSynth";
 export * from "./directionalSamplePlayer";
+export * from "./clockedMediaPlayer";
 export * from "./envelope";
 export * from "./pitch";
 export * from "./oscillatorSynth";

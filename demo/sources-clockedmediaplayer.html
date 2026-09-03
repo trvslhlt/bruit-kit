@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClockedMediaPlayer demo</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>ClockedMediaPlayer</h1>
+    <p class="demo-note">
+      A streamed track phase-locked to a shared master clock instead of a
+      triggered synth voice: activating it seeks straight to wherever the
+      clock says the track "currently is," the same way tuning into a
+      real broadcast mid-song does, rather than starting over from 0.
+      Deactivate and reactivate after a few seconds to see the position
+      jump forward to match.
+    </p>
+    <div id="unlock"></div>
+    <div id="controls"></div>
+    <p id="status" class="demo-note">Inactive.</p>
+    <script type="module" src="/sources-clockedmediaplayer.ts"></script>
+  </body>
+</html>
