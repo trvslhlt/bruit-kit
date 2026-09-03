@@ -81,3 +81,43 @@ export function heterodyneFrequencyHz(
   const normalized = Math.min(1, Math.abs(deltaF) / bandwidth);
   return HETERODYNE_MAX_HZ * normalized;
 }
+
+// `distance` (0..1: 0 strong/easy, 1 weak/fussy) is a single authored
+// "how good is this station" knob a station config can expose instead of
+// hand-tuning bandwidth/maxSignalQuality separately -- these three map
+// it onto the actual quantities the rest of this module works in.
+// centerDriftRangeFromDistance returns a +/- range for a caller's own
+// wander-toward-a-random-target pacing (e.g. driftMath.ts's
+// retargetDelayMsFor/lerpFactorFor) to wander a station's *true* center
+// within, over time -- this module only computes the range, the same
+// division of labor as heterodyneFrequencyHz leaving "is it audible
+// right now" to the caller.
+
+const MIN_BANDWIDTH = 0.15;
+const MAX_BANDWIDTH = 0.5;
+const MIN_SIGNAL_QUALITY = 0.3;
+const MAX_CENTER_DRIFT_RANGE = 0.1;
+
+/** Capture window: wide (forgiving) at distance 0, narrowing toward
+ * `MIN_BANDWIDTH` (fussy, precise tuning required) at distance 1. */
+export function bandwidthFromDistance(distance: number): number {
+  const clamped = Math.min(1, Math.max(0, distance));
+  return MAX_BANDWIDTH - clamped * (MAX_BANDWIDTH - MIN_BANDWIDTH);
+}
+
+/** Peak reachable signal: 1 (full) at distance 0, down to
+ * `MIN_SIGNAL_QUALITY` (still nominally receivable, never silent) at
+ * distance 1. */
+export function maxSignalQualityFromDistance(distance: number): number {
+  const clamped = Math.min(1, Math.max(0, distance));
+  return 1 - clamped * (1 - MIN_SIGNAL_QUALITY);
+}
+
+/** How far a station's true center can wander from its nominal dial
+ * position: 0 at distance 0 (rock-solid), up to `MAX_CENTER_DRIFT_RANGE`
+ * at distance 1 -- comparable to a distance-1 station's own (narrow)
+ * bandwidth, so a poor-quality station can occasionally drift far enough
+ * to be briefly untunable, not just harder to hear clearly. */
+export function centerDriftRangeFromDistance(distance: number): number {
+  return Math.min(1, Math.max(0, distance)) * MAX_CENTER_DRIFT_RANGE;
+}
