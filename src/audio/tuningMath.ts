@@ -121,3 +121,33 @@ export function maxSignalQualityFromDistance(distance: number): number {
 export function centerDriftRangeFromDistance(distance: number): number {
   return Math.min(1, Math.max(0, distance)) * MAX_CENTER_DRIFT_RANGE;
 }
+
+/** Maps a competitive lead -- one station's (jittered) effective
+ * strength minus its best competitor's, same units as signalGain's own
+ * 0..maxSignalQuality range -- onto how much of a station's own raw
+ * gain it keeps: `floor` at a `sensitivity`-sized deficit or worse, 1
+ * (untouched) at a `sensitivity`-sized lead or better, eased
+ * (smoothstep, not linear) through the middle so two closely-matched
+ * signals commit toward one winner rather than blending evenly right up
+ * to the edges -- the FM "capture effect" two neighboring stations'
+ * signals fighting over the same receiver produce. A caller adds its own
+ * jitter to each station's raw strength *before* computing `lead`
+ * (deliberately not this function's job, same division of labor as
+ * heterodyneFrequencyHz leaving "is it audible" to the caller) -- that's
+ * what makes which station is currently "ahead" flicker unpredictably
+ * when they're closely matched, rather than snapping to a fixed winner
+ * the instant one is a hair stronger. A non-finite `lead` (no competitor
+ * at all -- the common case, no other station in range) always returns
+ * 1. */
+export function signalCaptureFactor(
+  lead: number,
+  sensitivity: number,
+  floor: number,
+): number {
+  if (!Number.isFinite(lead)) return 1;
+  if (sensitivity <= 0) return lead >= 0 ? 1 : floor;
+  const normalized = Math.min(1, Math.max(-1, lead / sensitivity));
+  const t = (normalized + 1) / 2;
+  const eased = t * t * (3 - 2 * t);
+  return floor + eased * (1 - floor);
+}
