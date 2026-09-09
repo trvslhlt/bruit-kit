@@ -22,6 +22,15 @@ import {
 } from "./automationEditor";
 import { createKnob } from "./knob";
 import {
+  type RangeScale,
+  effectiveScale,
+  formatRangeValue,
+  fractionToValue,
+  snapToStep,
+  valueToFraction,
+} from "./rangeMath";
+import { openRangeMenu } from "./rangeMenu";
+import {
   type WaveformRange,
   createWaveformRangeView,
 } from "./waveformRangeView";
@@ -75,20 +84,32 @@ export type Field =
        * a param can be either, neither, or both at once. */
       labelDrifting?: boolean;
       /** Renders as a rotary knob (see knob.ts) instead of the default
-       * <input type="range"> -- defaults to "slider", so every existing
-       * "range" field (motion fields, modulation route bounds, the
-       * drift-speed field above) is unaffected by this option existing.
-       * A knob's own right-click menu lets it edit its value/min/max/
-       * scale directly; onBoundsChange/onScaleChange (below) are how it
-       * reports those edits back -- required once control is "knob",
-       * since every caller opting into knobs has a real place to persist
-       * them (see effectsFields.ts/nodeMenu.ts/patchGraph.ts). */
+       * <input type="range"> -- defaults to "slider". */
       control?: "slider" | "knob";
-      /** Meaningful only when control is "knob". Defaults to "linear". */
+      /** Linear (default) or logarithmic response -- applies to either
+       * control. A slider stays visually/behaviorally identical to a
+       * plain linear one unless this is actually "log" (see
+       * renderRangeInput's own doc comment on how it represents that on
+       * a native <input type="range">, which has no built-in nonlinear-
+       * step concept). */
       scale?: "linear" | "log";
-      /** Meaningful only when control is "knob" -- restored on
-       * double-click. Defaults to this field's own `value` if omitted. */
+      /** Restored on double-click (knob) or right-click-menu "Value"
+       * (either control) -- defaults to this field's own `value` if
+       * omitted. Only the knob's drag gesture has a double-click to
+       * reset; a slider's own native thumb doesn't get one (dragging a
+       * mouse-position-based control back to a specific value by hand is
+       * already how you'd do it), but the menu's Value field works the
+       * same way on both. */
       initialValue?: number;
+      /** Opts either control into the shared right-click "Value / Min /
+       * Max / Scale" menu (see rangeMenu.ts) -- present on both means the
+       * menu appears; omit both (the common case for most existing
+       * "range" fields: motion fields, the drift-speed field, etc.) and
+       * neither control shows it, no behavior change from before this
+       * pair existed. They report edits back; clamping and persisting
+       * them is entirely the caller's own business (see
+       * effectsFields.ts/nodeMenu.ts/patchGraph.ts for the callers that
+       * actually wire these up). */
       onBoundsChange?: (min: number, max: number) => void;
       onScaleChange?: (scale: "linear" | "log") => void;
       onChange: (value: number) => void;
@@ -193,41 +214,106 @@ export type Field =
       onChange: (range: WaveformRange) => void;
     };
 
-function formatValue(value: number, step: number): string {
-  const decimals = step < 1 ? Math.max(0, -Math.floor(Math.log10(step))) : 0;
-  return value.toFixed(decimals);
-}
+// A native <input type="range"> has no concept of a nonlinear step, so a
+// "log" field represents the input's own raw position as a fixed-
+// resolution fraction (0..LOG_RESOLUTION) and maps it through the log
+// curve (see rangeMath.ts) on the way in and out -- "linear" skips all of
+// that and binds min/max/step/value directly in real units, exactly as
+// this always worked before scale existed, so every field that doesn't
+// opt in is pixel- and behavior-identical to before.
+const LOG_RESOLUTION = 1000;
 
-function renderRangeInput(
+/** Exported (not just used internally by renderField's own "range" case)
+ * for a caller building a persistent, hand-rolled row outside the Field
+ * system entirely -- e.g. nodeMenu.ts's own trigger-period slider, which
+ * needs a compound "range + an inline snap-to-selection button" shape
+ * Field has no kind for, the same reason patchGraph.ts imports createKnob
+ * directly for its probability control. `setValue` on the returned handle
+ * is for exactly that kind of caller too: an external commit (a "snap to
+ * X" button, a node switch) that needs to update the displayed value
+ * without going through this input's own "input" event. */
+export function renderRangeInput(
   value: number,
   min: number,
   max: number,
   step: number,
   onInput: (value: number) => void,
-): { input: HTMLInputElement; valueEl: HTMLSpanElement } {
+  scale: RangeScale = "linear",
+  onBoundsChange?: (min: number, max: number) => void,
+  onScaleChange?: (scale: RangeScale) => void,
+): {
+  input: HTMLInputElement;
+  valueEl: HTMLSpanElement;
+  setValue: (value: number) => void;
+} {
+  const effScale = effectiveScale(scale, min);
   const input = document.createElement("input");
   input.type = "range";
+
+  const valueEl = document.createElement("span");
+  valueEl.className = "field-value";
+
   // min/max/step *before* value: a range input's value-setting algorithm
   // clamps to whatever min/max/step are in effect at that moment, and the
   // browser defaults (min 0, max 100, step 1) are still active until
   // these are set -- assigning value first would silently snap any
   // fractional value to the nearest whole number.
-  input.min = String(min);
-  input.max = String(max);
-  input.step = String(step);
-  input.value = String(value);
+  if (effScale === "log") {
+    input.min = "0";
+    input.max = String(LOG_RESOLUTION);
+    input.step = "1";
+  } else {
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+  }
 
-  const valueEl = document.createElement("span");
-  valueEl.className = "field-value";
-  valueEl.textContent = formatValue(value, step);
+  function syncDisplay(v: number): void {
+    input.value =
+      effScale === "log"
+        ? String(
+            Math.round(valueToFraction(v, min, max, effScale) * LOG_RESOLUTION),
+          )
+        : String(v);
+    valueEl.textContent = formatRangeValue(v, step);
+  }
+  syncDisplay(value);
 
   input.addEventListener("input", () => {
-    const v = Number(input.value);
-    valueEl.textContent = formatValue(v, step);
+    const raw = Number(input.value);
+    const v =
+      effScale === "log"
+        ? snapToStep(
+            fractionToValue(raw / LOG_RESOLUTION, min, max, effScale),
+            min,
+            max,
+            step,
+          )
+        : raw;
+    valueEl.textContent = formatRangeValue(v, step);
     onInput(v);
   });
 
-  return { input, valueEl };
+  if (onBoundsChange && onScaleChange) {
+    input.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      openRangeMenu({
+        value,
+        min,
+        max,
+        step,
+        scale: effScale,
+        onSetValue: (v) => {
+          syncDisplay(v);
+          onInput(v);
+        },
+        onBoundsChange,
+        onScaleChange,
+      });
+    });
+  }
+
+  return { input, valueEl, setValue: syncDisplay };
 }
 
 function renderField(container: HTMLElement, field: Field): void {
@@ -317,6 +403,9 @@ function renderField(container: HTMLElement, field: Field): void {
         field.max,
         field.step,
         field.onChange,
+        field.scale,
+        field.onBoundsChange,
+        field.onScaleChange,
       );
       row.appendChild(input);
       row.appendChild(valueEl);

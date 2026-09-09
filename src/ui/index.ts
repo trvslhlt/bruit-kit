@@ -1,5 +1,7 @@
 export * from "./sliderControl";
 export * from "./knob";
+export * from "./rangeMath";
+export * from "./rangeMenu";
 export * from "./waveformView";
 export * from "./waveformRangeView";
 export * from "./multiRangeWaveformView";
