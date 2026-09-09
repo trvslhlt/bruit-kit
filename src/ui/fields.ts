@@ -16,8 +16,15 @@
  * out from under an in-progress drag would abort the drag gesture. Fields
  * that don't need a full rebuild just don't trigger one. */
 
-import { type AutomationPoint, createAutomationEditor } from "./automationEditor";
-import { type WaveformRange, createWaveformRangeView } from "./waveformRangeView";
+import {
+  type AutomationPoint,
+  createAutomationEditor,
+} from "./automationEditor";
+import { createKnob } from "./knob";
+import {
+  type WaveformRange,
+  createWaveformRangeView,
+} from "./waveformRangeView";
 
 export type Field =
   | {
@@ -67,6 +74,23 @@ export type Field =
        * wandering right now" read as the two different things they are;
        * a param can be either, neither, or both at once. */
       labelDrifting?: boolean;
+      /** Renders as a rotary knob (see knob.ts) instead of the default
+       * <input type="range"> -- defaults to "slider", so every existing
+       * "range" field (motion fields, modulation route bounds, the
+       * drift-speed field above) is unaffected by this option existing.
+       * A knob's own right-click menu lets it edit its value/min/max/
+       * scale directly; onBoundsChange/onScaleChange (below) are how it
+       * reports those edits back -- required once control is "knob",
+       * since every caller opting into knobs has a real place to persist
+       * them (see effectsFields.ts/nodeMenu.ts/patchGraph.ts). */
+      control?: "slider" | "knob";
+      /** Meaningful only when control is "knob". Defaults to "linear". */
+      scale?: "linear" | "log";
+      /** Meaningful only when control is "knob" -- restored on
+       * double-click. Defaults to this field's own `value` if omitted. */
+      initialValue?: number;
+      onBoundsChange?: (min: number, max: number) => void;
+      onScaleChange?: (scale: "linear" | "log") => void;
       onChange: (value: number) => void;
     }
   | {
@@ -272,15 +296,31 @@ function renderField(container: HTMLElement, field: Field): void {
       if (field.labelDrifting) label.classList.add("field-label-drifting");
       label.addEventListener("click", field.onLabelClick);
     }
-    const { input, valueEl } = renderRangeInput(
-      field.value,
-      field.min,
-      field.max,
-      field.step,
-      field.onChange,
-    );
-    row.appendChild(input);
-    row.appendChild(valueEl);
+    if (field.control === "knob") {
+      const knobEl = document.createElement("div");
+      createKnob(knobEl, {
+        value: field.value,
+        min: field.min,
+        max: field.max,
+        step: field.step,
+        scale: field.scale,
+        initialValue: field.initialValue,
+        onChange: field.onChange,
+        onBoundsChange: (min, max) => field.onBoundsChange?.(min, max),
+        onScaleChange: (scale) => field.onScaleChange?.(scale),
+      });
+      row.appendChild(knobEl);
+    } else {
+      const { input, valueEl } = renderRangeInput(
+        field.value,
+        field.min,
+        field.max,
+        field.step,
+        field.onChange,
+      );
+      row.appendChild(input);
+      row.appendChild(valueEl);
+    }
   } else if (field.kind === "number") {
     if (field.indented) row.classList.add("panel-field-indented");
     const input = document.createElement("input");

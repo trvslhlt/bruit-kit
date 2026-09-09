@@ -46,6 +46,13 @@ export interface EffectSpec {
    * the effect), not shared with any other instance of the same effect
    * type elsewhere in the patch. */
   paramRanges?: Record<string, { min: number; max: number }>;
+  /** Per-instance override of a param's own knob taper (see
+   * effectTable.ts's `taper`, the table-wide default), set via that
+   * knob's own right-click menu -- absent, or missing a given param's
+   * key, falls back to the table's default taper for that param. Same
+   * scoping as paramRanges: one effect instance's own copy, not shared
+   * with any other instance of the same type elsewhere in the patch. */
+  paramScales?: Record<string, "linear" | "log">;
   /** Which of this effect instance's own numeric params should slowly
    * random-walk on their own while playing (see driftEngine.ts), wandering
    * within whatever range is active for that param (paramRanges' custom

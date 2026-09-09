@@ -334,6 +334,23 @@ export function effectsFields(
           );
         };
 
+        // Backs this param's own knob's right-click "Scale" field --
+        // same per-instance-override shape as paramRanges/commitRange
+        // above, just for taper instead of min/max.
+        const commitScale = (nextScale: "linear" | "log"): void => {
+          const current = getEffects();
+          onUpdate(
+            current.map((e, i) =>
+              i === index
+                ? {
+                    ...e,
+                    paramScales: { ...e.paramScales, [param.key]: nextScale },
+                  }
+                : e,
+            ),
+          );
+        };
+
         const isDrifting = (): boolean =>
           getEffects()[index]?.drift?.[param.key] !== undefined;
 
@@ -376,6 +393,9 @@ export function effectsFields(
           );
         };
 
+        const paramTaper =
+          spec.paramScales?.[param.key] ?? param.taper ?? "linear";
+
         fields.push({
           key,
           label: param.label,
@@ -385,6 +405,11 @@ export function effectsFields(
           max: active.max,
           step: param.step,
           indented: true,
+          control: "knob",
+          scale: paramTaper,
+          initialValue: param.default * scale,
+          onBoundsChange: commitRange,
+          onScaleChange: commitScale,
           labelCustomized: spec.paramRanges?.[param.key] !== undefined,
           labelDrifting: enableDrift === true && isDrifting(),
           onLabelClick: () =>

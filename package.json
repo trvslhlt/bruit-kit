@@ -15,6 +15,7 @@
     "./ui/multiMarkerWaveformView.css": "./dist/ui/multiMarkerWaveformView.css",
     "./ui/zoomableWaveformRangeView.css": "./dist/ui/zoomableWaveformRangeView.css",
     "./ui/sliderControl.css": "./dist/ui/sliderControl.css",
+    "./ui/knob.css": "./dist/ui/knob.css",
     "./ui/automationEditor.css": "./dist/ui/automationEditor.css",
     "./ui/stepSequencerEditor.css": "./dist/ui/stepSequencerEditor.css",
     "./audio": {

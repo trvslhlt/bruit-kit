@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>createKnob demo</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="../src/ui/knob.css" />
+    <style>
+      .knob-demo-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="back-link" href="/">&larr; All demos</a>
+    <h1>createKnob</h1>
+    <p class="demo-note">
+      Drag either knob vertically to change its value. Double-click to reset
+      to its initial value. Right-click for a menu to set an exact value or
+      edit this knob's own min/max/scale.
+    </p>
+    <div id="linear-row" class="knob-demo-row">
+      <span>Linear (0-100)</span>
+    </div>
+    <div id="log-row" class="knob-demo-row">
+      <span>Log (20 Hz - 20000 Hz)</span>
+    </div>
+    <script type="module" src="/ui-knob.ts"></script>
+  </body>
+</html>

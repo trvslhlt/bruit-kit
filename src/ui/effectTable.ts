@@ -33,6 +33,16 @@ export interface EffectRangeParamSpec {
    * omits this). */
   hardMin?: number;
   hardMax?: number;
+  /** Default knob response curve for this param -- "linear" if omitted.
+   * Only set on genuine Hz/frequency params (cutoff, carrier, damping,
+   * LFO rate): a decade-spanning frequency reads naturally on a log
+   * curve, the way a hardware synth's own cutoff knob does. Everything
+   * else (gain, feedback, wet, Q, ratio, depth, drive, etc.) stays
+   * linear by default -- a per-instance override is always available via
+   * that knob's own right-click menu (see EffectSpec.paramScales), so
+   * this is just a starting point, not a judgment call every param
+   * needs made for it here. */
+  taper?: "linear" | "log";
 }
 
 export interface EffectSelectParamSpec {
@@ -85,6 +95,7 @@ export const EFFECT_TABLE: Array<{
         max: 8000,
         step: 50,
         default: 8000,
+        taper: "log",
       },
       {
         key: "q",
@@ -287,6 +298,7 @@ export const EFFECT_TABLE: Array<{
         max: 20,
         step: 0.1,
         default: 5,
+        taper: "log",
       },
       {
         key: "depth",
@@ -327,6 +339,7 @@ export const EFFECT_TABLE: Array<{
         max: 2000,
         step: 1,
         default: 30,
+        taper: "log",
       },
       {
         key: "waveform",
@@ -358,6 +371,7 @@ export const EFFECT_TABLE: Array<{
         max: 20,
         step: 0.1,
         default: 0.8,
+        taper: "log",
       },
       {
         key: "depth",
@@ -391,6 +405,7 @@ export const EFFECT_TABLE: Array<{
         max: 20,
         step: 0.1,
         default: 0.25,
+        taper: "log",
       },
       {
         key: "depth",
@@ -433,6 +448,7 @@ export const EFFECT_TABLE: Array<{
         max: 20,
         step: 0.1,
         default: 0.3,
+        taper: "log",
       },
       {
         key: "depth",
@@ -475,6 +491,7 @@ export const EFFECT_TABLE: Array<{
         max: 2000,
         step: 1,
         default: 440,
+        taper: "log",
       },
       {
         key: "feedback",
@@ -515,6 +532,7 @@ export const EFFECT_TABLE: Array<{
         max: 3000,
         step: 10,
         default: 500,
+        taper: "log",
       },
       {
         key: "q",
@@ -542,6 +560,7 @@ export const EFFECT_TABLE: Array<{
         max: 50,
         step: 1,
         default: 15,
+        taper: "log",
       },
       {
         key: "wet",
@@ -617,6 +636,7 @@ export const EFFECT_TABLE: Array<{
         max: 12000,
         step: 100,
         default: 6000,
+        taper: "log",
       },
       {
         key: "wet",

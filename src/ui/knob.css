@@ -1,0 +1,107 @@
+.knob {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.knob-dial {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2c3038;
+  border: 1px solid #3a3f4a;
+  cursor: ns-resize;
+  touch-action: none;
+  flex-shrink: 0;
+}
+
+.knob-dial:focus-visible {
+  outline: 2px solid #6c7280;
+  outline-offset: 2px;
+}
+
+.knob-pointer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 40%;
+  background: #d7dae0;
+  transform-origin: bottom center;
+  margin-left: -1px;
+  margin-top: -40%;
+}
+
+.knob-value {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #9aa0ab;
+  min-width: 2.5em;
+  text-align: right;
+}
+
+.knob-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 13, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.knob-menu {
+  background: #1b1d22;
+  border: 1px solid #2c3038;
+  border-radius: 8px;
+  min-width: 220px;
+  color: #e4e6eb;
+  font-family: system-ui, sans-serif;
+}
+
+.knob-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #2c3038;
+  font-size: 0.85rem;
+}
+
+.knob-menu-close {
+  background: none;
+  border: none;
+  color: #9aa0ab;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+}
+
+.knob-menu-body {
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.knob-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.knob-menu-row input,
+.knob-menu-row select {
+  width: 100px;
+}
+
+.knob-menu-footer {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid #2c3038;
+  display: flex;
+  justify-content: flex-end;
+}
