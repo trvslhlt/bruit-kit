@@ -22,6 +22,7 @@ const EFFECT_PARAM_OPTIONS: Record<EffectType, EffectParamOption[]> = {
     { key: "gainParam", label: "Gain (dB)" },
   ],
   gain: [],
+  pan: [{ key: "panParam", label: "Pan" }],
   delay: [
     { key: "delayTimeParam", label: "Delay time (s)" },
     { key: "feedbackParam", label: "Feedback" },

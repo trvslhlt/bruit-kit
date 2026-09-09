@@ -155,6 +155,30 @@ export const EFFECT_TABLE: Array<{
     ],
   },
   {
+    type: "pan",
+    label: "Pan",
+    params: [
+      {
+        key: "pan",
+        label: "Pan",
+        kind: "range",
+        min: -1,
+        max: 1,
+        step: 0.01,
+        default: 0,
+      },
+      {
+        key: "wet",
+        label: "Wet",
+        kind: "range",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        default: 1,
+      },
+    ],
+  },
+  {
     type: "distortion",
     label: "Distortion",
     params: [

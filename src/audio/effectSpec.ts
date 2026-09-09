@@ -10,6 +10,7 @@
 export type EffectType =
   | "filter"
   | "gain"
+  | "pan"
   | "delay"
   | "distortion"
   | "compressor"

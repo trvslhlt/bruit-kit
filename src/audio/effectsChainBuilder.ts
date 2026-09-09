@@ -14,6 +14,7 @@ import { FuzzEffect } from "./fuzzEffect";
 import { GainEffect } from "./gainEffect";
 import { HardClipEffect } from "./hardClipEffect";
 import { OverdriveEffect } from "./overdriveEffect";
+import { PanEffect } from "./panEffect";
 import { ParametricWaveshaperEffect } from "./parametricWaveshaperEffect";
 import { PhaserEffect } from "./phaserEffect";
 import { PitchShiftEffect } from "./pitchShiftEffect";
@@ -38,6 +39,11 @@ function instantiateEffect(
     }
     case "gain": {
       const fx = new GainEffect(audioContext);
+      fx.setParams({ wet: 1, ...spec.params });
+      return fx;
+    }
+    case "pan": {
+      const fx = new PanEffect(audioContext);
       fx.setParams({ wet: 1, ...spec.params });
       return fx;
     }
