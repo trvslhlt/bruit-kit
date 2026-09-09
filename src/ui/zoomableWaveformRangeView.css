@@ -28,6 +28,17 @@
   opacity: 0.6;
 }
 
+.zoomable-waveform-range-fill {
+  /* Invisible -- the undimmed waveform underneath already shows what's
+     selected; this rect exists to be draggable, not to be seen. Explicit
+     pointer-events (SVG's own default for a transparent fill wouldn't
+     hit-test at all) is what makes dragging the middle possible. */
+  fill: transparent;
+  pointer-events: all;
+  cursor: grab;
+  touch-action: none;
+}
+
 .zoomable-waveform-range-handle {
   stroke: #ffb454;
   stroke-width: 3;

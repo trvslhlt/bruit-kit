@@ -99,6 +99,22 @@ export function createZoomableWaveformRangeView(
     svg.appendChild(rect);
   }
 
+  // Drag-to-translate the whole selection -- one rect covering the
+  // selected span normally, or two (the wrapped fragment's outer strips,
+  // mirroring beforeDim/afterDim's own wrapped-case split below) when
+  // range.start > range.end. Added after the dim rects (so they never
+  // visually or hit-test above it) but before the handles (so a handle's
+  // own thin line stays independently grabbable at the exact boundary,
+  // even though this fill spans underneath it too).
+  const fillA = document.createElementNS(SVG_NS, "rect");
+  const fillB = document.createElementNS(SVG_NS, "rect");
+  for (const rect of [fillA, fillB]) {
+    rect.setAttribute("class", "zoomable-waveform-range-fill");
+    rect.setAttribute("y", "0");
+    rect.setAttribute("height", String(height));
+    svg.appendChild(rect);
+  }
+
   const liveMarkerLine = document.createElementNS(SVG_NS, "line");
   liveMarkerLine.setAttribute("class", "zoomable-waveform-range-live");
   liveMarkerLine.setAttribute("y1", "0");
@@ -111,6 +127,16 @@ export function createZoomableWaveformRangeView(
   }
   function localXToBufferPos(localX: number): number {
     return viewStart + (localX / width) * (viewEnd - viewStart);
+  }
+
+  // Not imported from relpmas (which has its own wrapFraction/
+  // wrappedLength in sampleNode.ts, used by the main overview waveform's
+  // own drag-to-move) -- bruit-kit/ui stays app-agnostic, so the same
+  // small modular-arithmetic shape is duplicated locally here rather than
+  // crossing that boundary (see the root CLAUDE.md's "Layer boundaries
+  // are real" convention).
+  function wrapFraction(value: number): number {
+    return ((value % 1) + 1) % 1;
   }
 
   function makeHandle(onDrag: (bufferPos: number) => void): SVGLineElement {
@@ -147,6 +173,40 @@ export function createZoomableWaveformRangeView(
   });
   svg.append(startHandle, endHandle);
 
+  // Dragging inside the selection (as opposed to on either handle)
+  // translates the whole range, preserving its current length -- same
+  // idea as the main overview waveform's own single-marker drag (see
+  // relpmas's main.ts), but here as an explicit gesture over a visible
+  // fill rather than "there's only one handle." Wraps at the buffer's
+  // edges rather than clamping the pair against [0,1], matching how the
+  // handles above are themselves allowed to cross and create a wrapped
+  // fragment -- clamping here instead would make the same {start,end}
+  // shape reachable by dragging a handle but not by dragging the middle.
+  let fillDragStartBufferPos = 0;
+  let fillDragStartRange: WaveformRange = { start: 0, end: 0 };
+  for (const fill of [fillA, fillB]) {
+    fill.addEventListener("pointerdown", (event) => {
+      fill.setPointerCapture(event.pointerId);
+      const bounds = svg.getBoundingClientRect();
+      const localX = ((event.clientX - bounds.left) / bounds.width) * width;
+      fillDragStartBufferPos = localXToBufferPos(localX);
+      fillDragStartRange = { ...range };
+    });
+    fill.addEventListener("pointermove", (event) => {
+      if (!fill.hasPointerCapture(event.pointerId)) return;
+      const bounds = svg.getBoundingClientRect();
+      const localX = ((event.clientX - bounds.left) / bounds.width) * width;
+      const delta = localXToBufferPos(localX) - fillDragStartBufferPos;
+      const length = wrapFraction(
+        fillDragStartRange.end - fillDragStartRange.start,
+      );
+      range.start = wrapFraction(fillDragStartRange.start + delta);
+      range.end = wrapFraction(range.start + length);
+      redrawHandles();
+      options.onChange?.({ ...range });
+    });
+  }
+
   function redrawHandles(): void {
     const x1 = bufferPosToLocalX(range.start);
     const x2 = bufferPosToLocalX(range.end);
@@ -165,6 +225,13 @@ export function createZoomableWaveformRangeView(
       beforeDim.setAttribute("width", String(clampedX1));
       afterDim.setAttribute("x", String(clampedX2));
       afterDim.setAttribute("width", String(Math.max(0, width - clampedX2)));
+      // The selected span itself -- the inverse of the two dim rects
+      // above. fillB stays zero-width/unhit-testable (see the wrapped
+      // branch for when it's actually needed).
+      fillA.setAttribute("x", String(clampedX1));
+      fillA.setAttribute("width", String(Math.max(0, clampedX2 - clampedX1)));
+      fillB.setAttribute("x", String(width));
+      fillB.setAttribute("width", "0");
     } else {
       // Wrapped: the selected fragment runs through the buffer's end back
       // to its start, so the single dimmed (unselected) span is the strip
@@ -178,6 +245,11 @@ export function createZoomableWaveformRangeView(
       );
       afterDim.setAttribute("x", String(width));
       afterDim.setAttribute("width", "0");
+      // Selected span is the two outer strips instead of one middle one.
+      fillA.setAttribute("x", "0");
+      fillA.setAttribute("width", String(clampedX2));
+      fillB.setAttribute("x", String(clampedX1));
+      fillB.setAttribute("width", String(Math.max(0, width - clampedX1)));
     }
 
     if (
