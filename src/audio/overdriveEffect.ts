@@ -33,7 +33,8 @@ function makeOverdriveCurve(state: CurveState): Float32Array<ArrayBuffer> {
   const curve = new Float32Array(new ArrayBuffer(n * 4));
   for (let i = 0; i < n; i++) {
     const x = (i * 2) / n - 1;
-    curve[i] = x >= 0 ? Math.tanh(positiveDrive * x) : Math.tanh(negativeDrive * x);
+    curve[i] =
+      x >= 0 ? Math.tanh(positiveDrive * x) : Math.tanh(negativeDrive * x);
   }
   return curve;
 }

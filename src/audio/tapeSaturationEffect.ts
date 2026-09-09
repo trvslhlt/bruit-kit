@@ -59,7 +59,8 @@ export class TapeSaturationEffect {
     this.toneFilter = audioContext.createBiquadFilter();
     this.toneFilter.type = "lowpass";
     this.toneFilter.Q.value = 0.7;
-    this.toneFilter.frequency.value = MIN_TONE_HZ + 0.7 * (MAX_TONE_HZ - MIN_TONE_HZ);
+    this.toneFilter.frequency.value =
+      MIN_TONE_HZ + 0.7 * (MAX_TONE_HZ - MIN_TONE_HZ);
     this.shaper.connect(this.toneFilter);
 
     this.outputGainNode = audioContext.createGain();

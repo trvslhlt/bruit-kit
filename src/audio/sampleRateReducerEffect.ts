@@ -56,12 +56,7 @@ export class SampleRateReducerEffect {
     this.node.connect(this.outputGainNode);
     this.outputGainParam = this.outputGainNode.gain;
 
-    this.dryWet = createDryWet(
-      audioContext,
-      this.node,
-      this.outputGainNode,
-      0,
-    );
+    this.dryWet = createDryWet(audioContext, this.node, this.outputGainNode, 0);
     this.input = this.dryWet.input;
     this.output = this.dryWet.output;
   }

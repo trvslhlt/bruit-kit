@@ -37,7 +37,8 @@ interface FrequencyGlide {
 function frequencyAt(atTime: number, glide: FrequencyGlide): number {
   if (atTime <= glide.startTime) return glide.from;
   if (atTime >= glide.endTime) return glide.to;
-  const progress = (atTime - glide.startTime) / (glide.endTime - glide.startTime);
+  const progress =
+    (atTime - glide.startTime) / (glide.endTime - glide.startTime);
   return glide.from * (glide.to / glide.from) ** progress;
 }
 

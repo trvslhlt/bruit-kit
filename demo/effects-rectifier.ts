@@ -1,6 +1,6 @@
 import {
-  type RectifierMode,
   RectifierEffect,
+  type RectifierMode,
 } from "../src/audio/rectifierEffect";
 import { unlockAudioContext } from "./shared/audioContext";
 import { wireEffectDemo } from "./shared/effectHarness";

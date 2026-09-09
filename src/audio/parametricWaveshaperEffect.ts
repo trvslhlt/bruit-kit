@@ -20,7 +20,11 @@ export interface ParametricWaveshaperEffectParams {
  * point's current value even when setParams only touches one of them. */
 type CurvePoints = Pick<
   ParametricWaveshaperEffectParams,
-  "pointAtNegOne" | "pointAtNegHalf" | "pointAtZero" | "pointAtHalf" | "pointAtOne"
+  | "pointAtNegOne"
+  | "pointAtNegHalf"
+  | "pointAtZero"
+  | "pointAtHalf"
+  | "pointAtOne"
 >;
 
 const DEFAULT_POINTS: CurvePoints = {

@@ -85,7 +85,12 @@ export function pitchCompensationSpec(speed: number): EffectSpec[] {
   return [
     {
       type: "pitchShift",
-      params: { octave: 0, semitones: -12 * Math.log2(speed), cents: 0, wet: 1 },
+      params: {
+        octave: 0,
+        semitones: -12 * Math.log2(speed),
+        cents: 0,
+        wet: 1,
+      },
     },
   ];
 }
