@@ -1,5 +1,4 @@
-import { resolve } from "node:path";
-import { defineConfig } from "vite";
+const { resolve } = require("node:path");
 
 // Library mode with 4 independent entry points — consumers import
 // "bruit-kit/ui", "/audio", "/midi", or "/sources" separately rather than
@@ -15,9 +14,29 @@ import { defineConfig } from "vite";
 // require cache in memory, no disk write involved. Only the former races
 // against this machine's virtualized bind mount (surfaced as
 // "ERR_MODULE_NOT_FOUND ... vite.config.*.timestamp-*.mjs" failures) --
-// esbuild still happily transpiles this file's import/export syntax
-// either way, so nothing else about the config needs to change.
-export default defineConfig({
+// esbuild still happily transpiles either import/export or require/
+// module.exports syntax here, so this file's own syntax choice below is
+// about Biome, not Vite (see next paragraph). See the root CLAUDE.md's
+// "Vite config: .cjs and the CJS deprecation warning" section before
+// touching this file's extension or its config-loading mechanism.
+//
+// Genuine require()/module.exports here, not import/export -- Biome
+// infers a file's module type from its extension, so `.cjs` gets parsed
+// as strict CommonJS regardless of content; ESM syntax in this file used
+// to be a permanent, unfixable Biome parse error (esbuild tolerated it
+// for Vite's sake, Biome didn't). Being honest CJS keeps this file
+// actually lintable instead of permanently excluded.
+//
+// No `import { defineConfig } from "vite"` (nor `require("vite")`) here,
+// deliberately: `defineConfig` is only a no-op identity wrapper for type
+// inference, but requiring anything from "vite" at all trips Vite's own
+// `index.cjs` module-level `warnCjsUsage()` side effect ("The CJS build
+// of Vite's Node API is deprecated..."), every time this config loads.
+// Skipping that import and typing the config via the JSDoc annotation
+// below instead gets the same editor/type support without ever
+// requiring "vite" itself, so the warning has nothing to fire from.
+/** @type {import('vite').UserConfig} */
+module.exports = {
   build: {
     lib: {
       entry: {
@@ -43,4 +62,4 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
   },
-});
+};
