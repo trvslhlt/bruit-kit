@@ -1,3 +1,14 @@
+// A JS-side import, not a <link> in ui-knob.html: this demo's own Vite
+// dev server roots at demo/, so a plain HTML <link href="../src/ui/
+// knob.css"> can't resolve outside that root (silently falls through to
+// the SPA-fallback index.html instead, leaving the dial's own <div>s at
+// their default zero size -- present but invisible/unclickable, no
+// console error). A CSS import inside a .ts file goes through Vite's
+// full module graph instead, which does resolve outside-root paths (see
+// this same file's own "../src/ui/knob" import, one line down) -- no
+// other component demo needs this because none of them render an
+// element with no other source of intrinsic size.
+import "../src/ui/knob.css";
 import { createKnob } from "../src/ui/knob";
 
 const linearRow = document.querySelector<HTMLDivElement>("#linear-row")!;
