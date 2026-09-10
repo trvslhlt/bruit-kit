@@ -109,6 +109,23 @@ export function createKnob(
   dial.addEventListener("pointerup", () => {
     dragging = false;
   });
+  // setPointerCapture (above) is what makes pointermove keep reaching
+  // this element even once the cursor has moved well outside the dial's
+  // own small hit area -- pointerup alone isn't a reliable enough signal
+  // that the capture (and the drag) has actually ended, though: a fast
+  // real drag can leave the browser's viewport, get intercepted by
+  // another gesture, or otherwise have its capture revoked without a
+  // clean pointerup ever reaching this listener, which left `dragging`
+  // stuck true -- every further pointermove anywhere on the page kept
+  // adjusting the value, which looked exactly like the knob being stuck
+  // in a "still clicked" state long after the mouse button was actually
+  // released. lostpointercapture is the one event the spec guarantees
+  // fires whenever capture ends, for *any* reason (a clean pointerup
+  // included), so it's the authoritative place to clear `dragging`,
+  // rather than pointerup alone.
+  dial.addEventListener("lostpointercapture", () => {
+    dragging = false;
+  });
   dial.addEventListener("dblclick", () => {
     setValue(initialValue);
     options.onChange(value);
