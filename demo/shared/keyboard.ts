@@ -90,10 +90,21 @@ export function createOnScreenKeyboard(
   const heldCodes = new Set<string>();
 
   document.addEventListener("keydown", (event) => {
-    // Don't hijack typing into the param panel's own inputs, or OS/browser
-    // shortcuts held with a modifier.
+    // Don't hijack typing into a real text/number entry field, or OS/
+    // browser shortcuts held with a modifier. A focused <input type="range">
+    // (every param-panel slider) doesn't consume letter keystrokes the way
+    // a text field would, so it's deliberately not included here -- without
+    // this exception, merely dragging a slider (which focuses it) would
+    // silently disable the computer-keyboard piano until the user clicked
+    // somewhere else first.
     const eventTarget = event.target as HTMLElement | null;
-    if (eventTarget && /^(INPUT|SELECT|TEXTAREA)$/.test(eventTarget.tagName))
+    if (
+      eventTarget &&
+      (eventTarget.tagName === "SELECT" ||
+        eventTarget.tagName === "TEXTAREA" ||
+        (eventTarget.tagName === "INPUT" &&
+          (eventTarget as HTMLInputElement).type !== "range"))
+    )
       return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 
