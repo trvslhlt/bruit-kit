@@ -1,5 +1,12 @@
 @import "../src/ui/columns.css";
 @import "../src/ui/sliderControl.css";
+/* sliderControl.ts's bindSlider wires every param-panel slider's
+   right-click config menu through rangeMenu.ts, whose popup classes
+   (.knob-menu-overlay etc.) live here rather than in sliderControl.css --
+   same reason every knob.ts-consuming sibling app imports this globally
+   too, not just knob demos. Without it the menu renders as plain unstyled
+   inline content instead of a centered, blocking overlay. */
+@import "../src/ui/knob.css";
 @import "../src/ui/automationEditor.css";
 @import "../src/ui/stepSequencerEditor.css";
 @import "../src/ui/waveformView.css";

@@ -15,14 +15,18 @@ export interface RangeMenuOptions {
   min: number;
   max: number;
   step: number;
-  scale: RangeScale;
+  /** Omit (along with onScaleChange) for a control with no log-scale
+   * concept, e.g. a plain sliderControl.ts slider -- the Scale row is left
+   * out of the menu entirely rather than shown with nothing meaningful to
+   * do. */
+  scale?: RangeScale;
   /** Called when the menu's own Value field is applied -- a live update,
    * same as a drag tick: the caller should reflect it immediately but
    * doesn't need to (and, mid-drag-gesture callers aside, generally
    * shouldn't) trigger a full rebuild for it. */
   onSetValue: (value: number) => void;
   onBoundsChange: (min: number, max: number) => void;
-  onScaleChange: (scale: RangeScale) => void;
+  onScaleChange?: (scale: RangeScale) => void;
 }
 
 /** Appended straight to document.body as a small centered overlay --
@@ -34,7 +38,18 @@ export interface RangeMenuOptions {
  * controls avoid triggering rebuilds from a live "input" event, but a
  * committing one like this menu's Apply button is exactly the case
  * that's expected to). */
+// At most one of these menus is ever open at once -- opening a second
+// closes whatever the first was editing, the same as a native OS popup.
+// The overlay's own fixed, full-viewport backdrop (knob.css) normally
+// makes a second one unreachable anyway (nothing behind it can receive
+// the right-click that would open one), but a caller whose page hasn't
+// loaded that CSS -- easy to miss, see demo.css's own comment on this --
+// would otherwise silently stack plain, unstyled menus instead.
+let closeActiveMenu: (() => void) | null = null;
+
 export function openRangeMenu(options: RangeMenuOptions): void {
+  closeActiveMenu?.();
+
   const { value, min, max, step, scale } = options;
 
   const overlay = document.createElement("div");
@@ -50,7 +65,9 @@ export function openRangeMenu(options: RangeMenuOptions): void {
   function close(): void {
     overlay.remove();
     document.removeEventListener("keydown", onKeydown);
+    if (closeActiveMenu === close) closeActiveMenu = null;
   }
+  closeActiveMenu = close;
   function onKeydown(event: KeyboardEvent): void {
     if (event.key === "Escape") close();
   }
@@ -98,15 +115,17 @@ export function openRangeMenu(options: RangeMenuOptions): void {
   field("Max", maxInput);
 
   const scaleSelect = document.createElement("select");
-  for (const option of ["linear", "log"] as const) {
-    const optionEl = document.createElement("option");
-    optionEl.value = option;
-    optionEl.textContent = option === "linear" ? "Linear" : "Logarithmic";
-    optionEl.selected = option === scale;
-    optionEl.disabled = option === "log" && Number(minInput.value) <= 0;
-    scaleSelect.appendChild(optionEl);
+  if (scale !== undefined) {
+    for (const option of ["linear", "log"] as const) {
+      const optionEl = document.createElement("option");
+      optionEl.value = option;
+      optionEl.textContent = option === "linear" ? "Linear" : "Logarithmic";
+      optionEl.selected = option === scale;
+      optionEl.disabled = option === "log" && Number(minInput.value) <= 0;
+      scaleSelect.appendChild(optionEl);
+    }
+    field("Scale", scaleSelect);
   }
-  field("Scale", scaleSelect);
 
   const footer = document.createElement("div");
   footer.className = "knob-menu-footer";
@@ -116,7 +135,6 @@ export function openRangeMenu(options: RangeMenuOptions): void {
   applyButton.addEventListener("click", () => {
     const nextMin = Number(minInput.value);
     const nextMax = Number(maxInput.value);
-    const nextScale = scaleSelect.value as RangeScale;
     const nextValue = Number(valueInput.value);
 
     if (
@@ -127,8 +145,11 @@ export function openRangeMenu(options: RangeMenuOptions): void {
     ) {
       options.onBoundsChange(nextMin, nextMax);
     }
-    if (nextScale !== scale) {
-      options.onScaleChange(nextScale);
+    if (scale !== undefined && options.onScaleChange) {
+      const nextScale = scaleSelect.value as RangeScale;
+      if (nextScale !== scale) {
+        options.onScaleChange(nextScale);
+      }
     }
     if (Number.isFinite(nextValue) && nextValue !== value) {
       options.onSetValue(nextValue);
